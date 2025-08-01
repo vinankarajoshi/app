@@ -13,9 +13,17 @@ if not st.session_state.order_started:
             <p style='font-size: 20px;'>This simulation helps you visualize the journey of an order through Nestlé's supply chain.</p>
         </div>
     """, unsafe_allow_html=True)
-    
+
     col1, col2, col3 = st.columns([3, 2, 3])
     with col2:
+        st.markdown("""
+            <style>
+                div.stButton > button:first-child {
+                    font-size: 20px;
+                    padding: 0.75em 2em;
+                }
+            </style>
+        """, unsafe_allow_html=True)
         if st.button("📦 PLACE ORDER", key="start_button", use_container_width=True):
             st.session_state.order_started = True
             st.rerun()
@@ -67,6 +75,10 @@ else:
             else:
                 st.info(stage)
 
+    st.divider()
+
+    for stage in stages:
+        with st.expander(f"🔍 {stage} Details", expanded=True):
             for reason in delay_reasons_per_stage[stage]:
                 if (stage, reason) in st.session_state.fixed_delays:
                     st.warning(f"✅ Fixed: {reason}")
