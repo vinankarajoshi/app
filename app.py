@@ -11,6 +11,26 @@ Simulate an order as it moves through the supply chain stages. Encounter delays 
 
 st.divider()
 
+# Track time and number of touches
+time_tracker_key = 'time_tracker'
+touch_count_key = 'touch_count'
+
+if time_tracker_key not in st.session_state:
+    st.session_state[time_tracker_key] = {}
+
+if touch_count_key not in st.session_state:
+    st.session_state[touch_count_key] = 0
+
+# Display tracked metrics
+st.markdown("""
+### 📊 Simulation Stats
+""")
+stat_cols = st.columns(2)
+with stat_cols[0]:
+    st.metric("🕒 Total Time (seconds)", sum(st.session_state[time_tracker_key].values()))
+with stat_cols[1]:
+    st.metric("✋ Number of Actions Taken", st.session_state[touch_count_key])
+
 st.subheader("📦 Current Order Status")
 stages = ["Order processing", "FO and vehicle placement", "In Transit", "Reached Customer"]
 
@@ -72,6 +92,8 @@ if 'show_fix_prompt' not in st.session_state:
     st.session_state.show_fix_prompt = False
 if 'last_delay_reason' not in st.session_state:
     st.session_state.last_delay_reason = ""
+if 'step_start_time' not in st.session_state:
+    st.session_state.step_start_time = time.time()
 
 cols = st.columns(len(stages))
 
@@ -108,6 +130,12 @@ def proceed_to_next():
         st.session_state.last_delay_reason = next_reason
         st.session_state.show_fix_prompt = True
     else:
+        # Time tracking per stage
+        end_time = time.time()
+        elapsed_time = round(end_time - st.session_state.step_start_time, 2)
+        st.session_state[time_tracker_key][current_stage_name] = elapsed_time
+        st.session_state.step_start_time = end_time
+
         st.session_state.current_stage += 1
         st.session_state.delay_index = 0
         if st.session_state.current_stage == len(stages):
@@ -133,6 +161,7 @@ if not st.session_state.order_complete:
             """, unsafe_allow_html=True)
 
             if st.button("✅ Apply Fix", key="fix_button"):
+                st.session_state[touch_count_key] += 1
                 fixed_reason = st.session_state.delays[current_stage_name].pop(0)
                 st.session_state.fixes.append(f"Fix applied for: {fixed_reason} at {current_stage_name}")
                 st.session_state.fixed_delays.add((current_stage_name, fixed_reason))
@@ -142,6 +171,7 @@ if not st.session_state.order_complete:
                 proceed_to_next()
 
         elif st.button("🚀 PROCEED"):
+            st.session_state[touch_count_key] += 1
             proceed_to_next()
 else:
     if st.button("🔄 Reset Simulation"):
@@ -155,6 +185,9 @@ else:
         st.session_state.fixed_delays = set()
         st.session_state.show_fix_prompt = False
         st.session_state.last_delay_reason = ""
+        st.session_state[time_tracker_key] = {}
+        st.session_state[touch_count_key] = 0
+        st.session_state.step_start_time = time.time()
         st.rerun()
 
 st.divider()
