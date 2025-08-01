@@ -47,7 +47,7 @@ for i, stage in enumerate(stages):
             st.success(stage)
             for reason in delay_reasons_per_stage[stage]:
                 if reason in st.session_state.delays[stage]:
-                    st.warning(f"⚠️ Fixed: {reason}")
+                    st.warning(f"✅ Fixed: {reason}")
                 elif (stage, reason) in st.session_state.all_delays_encountered:
                     st.error(f"⏱️ Delay: {reason}")
         elif i == st.session_state.current_stage:
@@ -56,7 +56,7 @@ for i, stage in enumerate(stages):
                 if reason in st.session_state.delays[stage]:
                     st.error(f"⏱️ Delay: {reason}")
                 elif (stage, reason) in st.session_state.all_delays_encountered:
-                    st.warning(f"⚠️ Fixed: {reason}")
+                    st.warning(f"✅ Fixed: {reason}")
         else:
             st.info(stage)
 
@@ -78,7 +78,7 @@ if not st.session_state.order_complete:
             elif st.session_state.delays[current_stage_name]:
                 fixed_reason = st.session_state.delays[current_stage_name].pop(0)
                 st.session_state.fixes.append(f"Fix applied for: {fixed_reason} at {current_stage_name}")
-                st.toast(f"🔧 Fix applied: {fixed_reason}", icon="⚠️")
+                st.toast(f"🔧 Fix applied: {fixed_reason}", icon="✅")
             else:
                 st.session_state.current_stage += 1
                 st.session_state.delay_index = 0
