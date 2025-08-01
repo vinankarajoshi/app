@@ -3,191 +3,85 @@ import time
 
 st.set_page_config(page_title="O2D Simulation", layout="wide")
 
-st.title("🚚 Order to Delivery (O2D) Simulation Interface")
-
-st.markdown("""
-Simulate an order as it moves through the supply chain stages. Encounter delays and apply fixes to ensure timely delivery.
-""")
-
-st.divider()
-
-# Track time and number of touches
-time_tracker_key = 'time_tracker'
-touch_count_key = 'touch_count'
-
-if time_tracker_key not in st.session_state:
-    st.session_state[time_tracker_key] = {}
-
-if touch_count_key not in st.session_state:
-    st.session_state[touch_count_key] = 0
-
-# Display tracked metrics
-st.markdown("""
-### 📊 Simulation Stats
-""")
-stat_cols = st.columns(2)
-with stat_cols[0]:
-    st.metric("🕒 Total Time (seconds)", sum(st.session_state[time_tracker_key].values()))
-with stat_cols[1]:
-    st.metric("✋ Number of Actions Taken", st.session_state[touch_count_key])
-
-st.subheader("📦 Current Order Status")
-stages = ["Order processing", "FO and vehicle placement", "In Transit", "Reached Customer"]
-
-delay_reasons_per_stage = {
-    "Order processing": ["Customer funds unavailable", "Stock shortage", "Incorrect Material"],
-    "FO and vehicle placement": ["Vehicle Unavailable", "Dock waiting", "Underload"],
-    "In Transit": ["No entry window", "Traffic/Road blocks"],
-    "Reached Customer": ["CD weekly off", "Unloading Delayed", "POD entry delayed"]
-}
-
-# Custom fix messages
-fix_messages = {
-    "Customer funds unavailable": "Customer arranged funds via emergency credit.",
-    "Stock shortage": "Stock replenished from nearby warehouse.",
-    "Incorrect Material": "Correct material dispatched after verification.",
-    "Vehicle Unavailable": "Alternate vehicle arranged on priority.",
-    "Dock waiting": "Loading dock cleared for immediate access.",
-    "Underload": "Additional consignment added to optimize load.",
-    "No entry window": "New entry window approved by authorities.",
-    "Traffic/Road blocks": "Alternate route selected to bypass block.",
-    "CD weekly off": "Customer confirmed off day delivery exception.",
-    "Unloading Delayed": "Extra manpower deployed to speed up unloading.",
-    "POD entry delayed": "Manual POD entry authorized and uploaded."
-}
-
-# Custom action messages
-action_messages = {
-    "Customer funds unavailable": "Engage with customer to provide short-term credit facility.",
-    "Stock shortage": "Coordinate with nearby warehouse to transfer required stock.",
-    "Incorrect Material": "Initiate corrective dispatch and halt incorrect delivery.",
-    "Vehicle Unavailable": "Reach out to backup transporter to arrange an alternative.",
-    "Dock waiting": "Request urgent clearance from dock supervisor.",
-    "Underload": "Club with nearby FO to achieve load optimization.",
-    "No entry window": "Request revised entry approval through control room.",
-    "Traffic/Road blocks": "Communicate with driver to reroute via approved alternate.",
-    "CD weekly off": "Seek exception approval for delivery on off day.",
-    "Unloading Delayed": "Deploy additional resources at customer site.",
-    "POD entry delayed": "Authorize manual POD update by logistics officer."
-}
-
-# Session states
+# Initialize session state
 if 'current_stage' not in st.session_state:
     st.session_state.current_stage = 0
-if 'delays' not in st.session_state:
-    st.session_state.delays = {stage: [] for stage in stages}
-if 'fixes' not in st.session_state:
-    st.session_state.fixes = []
-if 'delay_index' not in st.session_state:
+    st.session_state.stage_start_time = time.time()
+    st.session_state.total_actions = 0
+    st.session_state.total_start_time = time.time()
+    st.session_state.stage_stats = [
+        {'name': 'Order Placement', 'time': 0, 'actions': 0},
+        {'name': 'Warehouse Processing', 'time': 0, 'actions': 0},
+        {'name': 'In-Transit', 'time': 0, 'actions': 0},
+        {'name': 'Delivery', 'time': 0, 'actions': 0},
+    ]
+    st.session_state.delays = [
+        {'reason': 'Order verification failed', 'action': 'Verify order details with customer'},
+        {'reason': 'Stock not available', 'action': 'Initiate stock transfer from nearby warehouse'},
+        {'reason': 'Vehicle breakdown', 'action': 'Arrange alternate transport'},
+        {'reason': 'Customer unavailable at delivery', 'action': 'Reschedule delivery'},
+    ]
     st.session_state.delay_index = 0
-if 'all_delays_encountered' not in st.session_state:
-    st.session_state.all_delays_encountered = []
-if 'delivered' not in st.session_state:
-    st.session_state.delivered = False
-if 'order_complete' not in st.session_state:
-    st.session_state.order_complete = False
-if 'fixed_delays' not in st.session_state:
-    st.session_state.fixed_delays = set()
-if 'show_fix_prompt' not in st.session_state:
-    st.session_state.show_fix_prompt = False
-if 'last_delay_reason' not in st.session_state:
-    st.session_state.last_delay_reason = ""
-if 'step_start_time' not in st.session_state:
-    st.session_state.step_start_time = time.time()
+    st.session_state.simulation_complete = False
 
-cols = st.columns(len(stages))
+# Track time and actions
+current_time = time.time()
+elapsed_total = int(current_time - st.session_state.total_start_time)
 
-for i, stage in enumerate(stages):
-    with cols[i]:
-        if i < st.session_state.current_stage:
-            st.success(stage)
-        elif i == st.session_state.current_stage:
-            st.warning(stage)
-        else:
-            st.info(stage)
+# Header stats
+st.markdown("## 📦 Order to Delivery Simulation")
 
-        for reason in delay_reasons_per_stage[stage]:
-            if (stage, reason) in st.session_state.fixed_delays:
-                st.warning(f"✅ Fixed: {reason}")
-            elif (stage, reason) in st.session_state.all_delays_encountered:
-                st.error(f"⏱️ Delay: {reason}")
+cols = st.columns([2, 2, 6])
+cols[0].metric("Total Time Elapsed (s)", elapsed_total)
+cols[1].metric("Total Actions Taken", st.session_state.total_actions)
 
-# Progress bar
-progress_value = min((st.session_state.current_stage + 1) / len(stages), 0.999)
-st.progress(progress_value)
+# Section-wise stats
+col_stats = st.columns(4)
+for i, stats in enumerate(st.session_state.stage_stats):
+    col_stats[i].markdown(f"### {stats['name']}")
+    col_stats[i].metric("Time (s)", int(stats['time']))
+    col_stats[i].metric("Actions", stats['actions'])
 
-# Feedback placeholder
-feedback_placeholder = st.empty()
+# Current stage display
+if not st.session_state.simulation_complete:
+    stage = st.session_state.current_stage
+    st.markdown(f"## ▶️ Stage {stage+1}: {st.session_state.stage_stats[stage]['name']}")
 
-def proceed_to_next():
-    current_stage_name = stages[st.session_state.current_stage]
-    stage_reasons = delay_reasons_per_stage[current_stage_name]
-    if st.session_state.delay_index < len(stage_reasons):
-        next_reason = stage_reasons[st.session_state.delay_index]
-        st.session_state.delays[current_stage_name].append(next_reason)
-        st.session_state.all_delays_encountered.append((current_stage_name, next_reason))
-        st.session_state.delay_index += 1
-        st.session_state.last_delay_reason = next_reason
-        st.session_state.show_fix_prompt = True
+    # Simulate delay for this stage if any left
+    if st.session_state.delay_index < len(st.session_state.delays):
+        delay = st.session_state.delays[st.session_state.delay_index]
+        with st.container(border=True):
+            st.markdown("## ❗ Delay Encountered:")
+            st.markdown(f"**Reason:** {delay['reason']}")
+            st.markdown("### 🛠️ TAKE ACTION")
+            st.markdown(f"{delay['action']}")
+
+            fix = st.button("Fix Issue", key=f"fix_{st.session_state.delay_index}")
+            if fix:
+                # Update time for current stage
+                now = time.time()
+                elapsed = now - st.session_state.stage_start_time
+                st.session_state.stage_stats[stage]['time'] += elapsed
+                st.session_state.stage_stats[stage]['actions'] += 1
+                st.session_state.total_actions += 1
+                st.session_state.stage_start_time = now
+
+                # Move to next delay (and possibly next stage)
+                st.session_state.delay_index += 1
+                if st.session_state.delay_index % 1 == 0 and st.session_state.delay_index // 1 > stage:
+                    st.session_state.current_stage += 1
+                    st.session_state.stage_start_time = now
+
+                # Complete simulation
+                if st.session_state.current_stage >= len(st.session_state.stage_stats):
+                    st.session_state.simulation_complete = True
+                st.experimental_rerun()
     else:
-        # Time tracking per stage
-        end_time = time.time()
-        elapsed_time = round(end_time - st.session_state.step_start_time, 2)
-        st.session_state[time_tracker_key][current_stage_name] = elapsed_time
-        st.session_state.step_start_time = end_time
+        st.session_state.simulation_complete = True
+        st.experimental_rerun()
 
-        st.session_state.current_stage += 1
-        st.session_state.delay_index = 0
-        if st.session_state.current_stage == len(stages):
-            st.session_state.delivered = True
-            st.session_state.order_complete = True
-            st.success("✅ Order Successfully Delivered!")
-            feedback_placeholder.success("🎉 Order has been delivered! Click button again to reset.")
-
-if not st.session_state.order_complete:
-    if st.session_state.current_stage < len(stages):
-        current_stage_name = stages[st.session_state.current_stage]
-
-        if st.session_state.show_fix_prompt:
-            reason = st.session_state.last_delay_reason
-            action_msg = action_messages.get(reason, "Take appropriate action.")
-            st.markdown(f"""
-                <div style='padding: 2rem; margin: 2rem auto; background-color: #fff3f3; border: 2px solid red; border-radius: 10px; text-align: center; width: 60%;'>
-                    <h2>⏱️ Delay Encountered</h2>
-                    <p style='font-size: 1.2rem;'><b>Reason:</b> {reason}</p>
-                    <h3 style='margin-top: 1rem;'>📌 Take Action</h3>
-                    <p style='font-size: 1.1rem;'>{action_msg}</p>
-                </div>
-            """, unsafe_allow_html=True)
-
-            if st.button("✅ Apply Fix", key="fix_button"):
-                st.session_state[touch_count_key] += 1
-                fixed_reason = st.session_state.delays[current_stage_name].pop(0)
-                st.session_state.fixes.append(f"Fix applied for: {fixed_reason} at {current_stage_name}")
-                st.session_state.fixed_delays.add((current_stage_name, fixed_reason))
-                fix_message = fix_messages.get(fixed_reason, "Fix applied.")
-                feedback_placeholder.success(f"🔧 {fix_message}")
-                st.session_state.show_fix_prompt = False
-                proceed_to_next()
-
-        elif st.button("🚀 PROCEED"):
-            st.session_state[touch_count_key] += 1
-            proceed_to_next()
 else:
-    if st.button("🔄 Reset Simulation"):
-        st.session_state.current_stage = 0
-        st.session_state.delays = {stage: [] for stage in stages}
-        st.session_state.fixes = []
-        st.session_state.delay_index = 0
-        st.session_state.all_delays_encountered = []
-        st.session_state.delivered = False
-        st.session_state.order_complete = False
-        st.session_state.fixed_delays = set()
-        st.session_state.show_fix_prompt = False
-        st.session_state.last_delay_reason = ""
-        st.session_state[time_tracker_key] = {}
-        st.session_state[touch_count_key] = 0
-        st.session_state.step_start_time = time.time()
-        st.rerun()
-
-st.divider()
+    st.success("✅ Simulation Complete!")
+    total_elapsed = int(time.time() - st.session_state.total_start_time)
+    st.markdown(f"### ⏱️ Total Time: {total_elapsed} seconds")
+    st.markdown(f"### 🔢 Total Actions Taken: {st.session_state.total_actions}")
