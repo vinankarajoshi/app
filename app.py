@@ -78,35 +78,7 @@ else:
     if 'stage_milestones' not in st.session_state:
         st.session_state.stage_milestones = {}
 
-    # Top Metrics Box
-    total_time = int(time.time() - st.session_state.start_time)
-    total_actions = sum(st.session_state.actions_per_stage.values())
-
-    st.markdown("""
-        <div style='border:2px solid #4CAF50; border-radius:10px; padding:15px; background-color:#f9f9f9;'>
-            <h4>📊 Simulation Summary</h4>
-            <div style='display:flex; justify-content:space-between;'>
-                <div style='flex:1; text-align:center;'>
-                    <h5>⏱️ Total Time Elapsed (s)</h5>
-                    <p style='font-size:24px; font-weight:bold;'>""" + str(total_time) + """</p>
-                </div>
-                <div style='flex:1; text-align:center;'>
-                    <h5>🛠️ Total Actions Taken</h5>
-                    <p style='font-size:24px; font-weight:bold;'>""" + str(total_actions) + """</p>
-                </div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Section-wise summary
-    st.markdown("### 📊 Stage-wise Progress")
-    stage_cols = st.columns(len(stages))
-    for i, stage in enumerate(stages):
-        with stage_cols[i]:
-            st.markdown(f"**{stage}**")
-            st.metric("Time (s)", int(st.session_state.time_per_stage[stage]))
-            st.metric("Actions", st.session_state.actions_per_stage[stage])
-
+    
     st.divider()
 
     st.subheader("📦 Current Order Status")
@@ -212,3 +184,32 @@ else:
             st.rerun()
 
     st.divider()
+# Top Metrics Box
+    total_time = int(time.time() - st.session_state.start_time)
+    total_actions = sum(st.session_state.actions_per_stage.values())
+
+    st.markdown("""
+        <div style='border:2px solid #4CAF50; border-radius:10px; padding:15px; background-color:#f9f9f9;'>
+            <h4>📊 Simulation Summary</h4>
+            <div style='display:flex; justify-content:space-between;'>
+                <div style='flex:1; text-align:center;'>
+                    <h5>⏱️ Total Time Elapsed (s)</h5>
+                    <p style='font-size:24px; font-weight:bold;'>""" + str(total_time) + """</p>
+                </div>
+                <div style='flex:1; text-align:center;'>
+                    <h5>🛠️ Total Actions Taken</h5>
+                    <p style='font-size:24px; font-weight:bold;'>""" + str(total_actions) + """</p>
+                </div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # Section-wise summary
+    st.markdown("### 📊 Stage-wise Progress")
+    stage_cols = st.columns(len(stages))
+    for i, stage in enumerate(stages):
+        with stage_cols[i]:
+            st.markdown(f"**{stage}**")
+            st.metric("Time (s)", int(st.session_state.time_per_stage[stage]))
+            st.metric("Actions", st.session_state.actions_per_stage[stage])
+st.divider()
