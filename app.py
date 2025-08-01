@@ -10,8 +10,8 @@ if 'order_started' not in st.session_state:
 if not st.session_state.order_started:
     st.markdown("""
         <div style='text-align:center;'>
-            <h1 style='font-size:48px;'>👋 Welcome to Nestlé's O2D Simulation</h1>
-            <p style='font-size:24px;'>Would you like to place an order?</p>
+            <h1 style='font-size:60px;'>👋 Welcome to Nestlé's O2D Simulation</h1>
+            <p style='font-size:48px;'>Would you like to place an order?</p>
         </div>
     """, unsafe_allow_html=True)
 
