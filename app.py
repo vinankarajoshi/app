@@ -74,20 +74,16 @@ if not st.session_state.order_complete:
 
         if st.session_state.show_fix_prompt:
             with st.container():
-                st.markdown(
-                    """
+                st.markdown("""
                     <div style='padding: 2rem; margin: 2rem auto; background-color: #fff3f3; border: 2px solid red; border-radius: 10px; text-align: center; width: 60%;'>
                         <h2>⏱️ Delay Encountered</h2>
                         <p style='font-size: 1.2rem;'>""" + st.session_state.last_delay_reason + """</p>
-                        <form action="" method="post">
-                            <button type="submit" style='padding: 0.75rem 1.5rem; font-size: 1.1rem; background-color: green; color: white; border: none; border-radius: 8px;'>✅ FIX THIS</button>
-                        </form>
                     </div>
                     """,
                     unsafe_allow_html=True
                 )
 
-                if st.form_submit_button("fix_form"):
+                if st.button("✅ FIX THIS"):
                     fixed_reason = st.session_state.delays[current_stage_name].pop(0)
                     st.session_state.fixes.append(f"Fix applied for: {fixed_reason} at {current_stage_name}")
                     st.session_state.fixed_delays.add((current_stage_name, fixed_reason))
