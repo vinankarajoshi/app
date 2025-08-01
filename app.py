@@ -54,26 +54,20 @@ if st.session_state.current_stage < len(stages):
     current_stage_name = stages[st.session_state.current_stage]
     stage_reasons = delay_reasons_per_stage[current_stage_name]
 
-    col1, col2 = st.columns(2)
-
-    with col1:
-        if st.button("Next Delay / Initialize Delay"):
-            if st.session_state.delay_index < len(stage_reasons):
-                next_reason = stage_reasons[st.session_state.delay_index]
-                st.session_state.delays[current_stage_name].append(next_reason)
-                st.session_state.delay_index += 1
-
-    with col2:
-        if st.button("Apply Fix"):
-            if st.session_state.delay_index > 0:
-                last_reason = stage_reasons[st.session_state.delay_index - 1]
-                st.session_state.fixes.append(f"Fix applied for: {last_reason} at {current_stage_name}")
-                st.session_state.delays[current_stage_name].remove(last_reason)
-                st.session_state.delay_index -= 1
-
-            if st.session_state.delay_index == 0:
-                st.session_state.current_stage += 1
-                st.session_state.delay_index = 0
+    if st.button("🚀 Fix Delay / Move to Next Stage"):
+        # Introduce new delay if available
+        if st.session_state.delay_index < len(stage_reasons):
+            next_reason = stage_reasons[st.session_state.delay_index]
+            st.session_state.delays[current_stage_name].append(next_reason)
+            st.session_state.delay_index += 1
+        # Fix earliest existing delay
+        elif st.session_state.delays[current_stage_name]:
+            fixed_reason = st.session_state.delays[current_stage_name].pop(0)
+            st.session_state.fixes.append(f"Fix applied for: {fixed_reason} at {current_stage_name}")
+        # All delays fixed, move to next stage
+        else:
+            st.session_state.current_stage += 1
+            st.session_state.delay_index = 0
 else:
     st.success("✅ Order Successfully Delivered!")
 
