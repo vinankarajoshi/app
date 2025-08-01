@@ -98,7 +98,8 @@ else:
                 if st.session_state.delay_index < len(stage_reasons):
                     next_reason = stage_reasons[st.session_state.delay_index]
                     st.session_state.delays[current_stage_name].append(next_reason)
-                    st.session_state.all_delays_encountered.append((current_stage_name, next_reason))
+                    if (current_stage_name, next_reason) not in st.session_state.all_delays_encountered:
+                        st.session_state.all_delays_encountered.append((current_stage_name, next_reason))
                     st.session_state.delay_index += 1
                 elif st.session_state.delays[current_stage_name]:
                     fixed_reason = st.session_state.delays[current_stage_name].pop(0)
