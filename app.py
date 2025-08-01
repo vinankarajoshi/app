@@ -38,8 +38,10 @@ if 'order_complete' not in st.session_state:
     st.session_state.order_complete = False
 if 'fixed_delays' not in st.session_state:
     st.session_state.fixed_delays = set()
-if 'expecting_fix' not in st.session_state:
-    st.session_state.expecting_fix = False
+if 'show_fix_prompt' not in st.session_state:
+    st.session_state.show_fix_prompt = False
+if 'last_delay_reason' not in st.session_state:
+    st.session_state.last_delay_reason = ""
 
 cols = st.columns(len(stages))
 
@@ -62,36 +64,46 @@ for i, stage in enumerate(stages):
 progress_value = min((st.session_state.current_stage + 1) / len(stages), 0.999)
 st.progress(progress_value)
 
+# Feedback placeholder
+feedback_placeholder = st.empty()
 
 if not st.session_state.order_complete:
     if st.session_state.current_stage < len(stages):
         current_stage_name = stages[st.session_state.current_stage]
         stage_reasons = delay_reasons_per_stage[current_stage_name]
 
-        if st.button("🚀 PROCEED"):
-            if not st.session_state.expecting_fix:
-                if st.session_state.delay_index < len(stage_reasons):
-                    next_reason = stage_reasons[st.session_state.delay_index]
-                    st.session_state.delays[current_stage_name].append(next_reason)
-                    st.session_state.all_delays_encountered.append((current_stage_name, next_reason))
-                    st.session_state.delay_index += 1
-                    st.session_state.expecting_fix = True
-                else:
-                    # No more delays; move to next stage
-                    st.session_state.current_stage += 1
-                    st.session_state.delay_index = 0
-                    st.session_state.expecting_fix = False
-                    if st.session_state.current_stage == len(stages):
-                        st.session_state.delivered = True
-                        st.session_state.order_complete = True
-                        st.success("✅ Order Successfully Delivered!")
+        if st.session_state.show_fix_prompt:
+            with st.container():
+                st.markdown("""
+                    <div style='padding: 2rem; margin: 2rem auto; background-color: #fff3f3; border: 2px solid red; border-radius: 10px; text-align: center; width: 60%;'>
+                        <h2>⏱️ Delay Encountered</h2>
+                        <p style='font-size: 1.2rem;'>""" + st.session_state.last_delay_reason + """</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+            if st.button("✅ FIX THIS", key="fix_button"):
+                fixed_reason = st.session_state.delays[current_stage_name].pop(0)
+                st.session_state.fixes.append(f"Fix applied for: {fixed_reason} at {current_stage_name}")
+                st.session_state.fixed_delays.add((current_stage_name, fixed_reason))
+                feedback_placeholder.success(f"🔧 Fix applied: {fixed_reason}")
+                st.session_state.show_fix_prompt = False
+
+        elif st.button("🚀 PROCEED"):
+            if st.session_state.delay_index < len(stage_reasons):
+                next_reason = stage_reasons[st.session_state.delay_index]
+                st.session_state.delays[current_stage_name].append(next_reason)
+                st.session_state.all_delays_encountered.append((current_stage_name, next_reason))
+                st.session_state.delay_index += 1
+                st.session_state.last_delay_reason = next_reason
+                st.session_state.show_fix_prompt = True
             else:
-                # Apply fix
-                if st.session_state.delays[current_stage_name]:
-                    fixed_reason = st.session_state.delays[current_stage_name].pop(0)
-                    st.session_state.fixes.append(f"Fix applied for: {fixed_reason} at {current_stage_name}")
-                    st.session_state.fixed_delays.add((current_stage_name, fixed_reason))
-                    st.session_state.expecting_fix = False
+                st.session_state.current_stage += 1
+                st.session_state.delay_index = 0
+                if st.session_state.current_stage == len(stages):
+                    st.session_state.delivered = True
+                    st.session_state.order_complete = True
+                    st.success("✅ Order Successfully Delivered!")
+                    feedback_placeholder.success("🎉 Order has been delivered! Click button again to reset.")
 else:
     if st.button("🔄 Reset Simulation"):
         st.session_state.current_stage = 0
@@ -102,7 +114,8 @@ else:
         st.session_state.delivered = False
         st.session_state.order_complete = False
         st.session_state.fixed_delays = set()
-        st.session_state.expecting_fix = False
+        st.session_state.show_fix_prompt = False
+        st.session_state.last_delay_reason = ""
         st.rerun()
 
 st.divider()
