@@ -52,7 +52,7 @@ if st.session_state.current_stage < len(stages) - 1:
 
     with col1:
         if st.button("Advance to Next Stage"):
-            reasons = random.sample(delay_reasons, k=2)  # multiple reasons per stage
+            reasons = random.sample(delay_reasons, k=min(2, len(delay_reasons)))  # multiple reasons per stage
             for reason in reasons:
                 st.session_state.delays[stages[st.session_state.current_stage]].append(reason)
 
