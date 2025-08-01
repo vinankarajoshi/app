@@ -39,7 +39,7 @@ for i, stage in enumerate(stages):
     with cols[i]:
         if i < st.session_state.current_stage:
             st.success(stage)
-            for reason in st.session_state.delays[stage]:
+            for reason in delay_reasons_per_stage[stage]:
                 st.error(f"⏱️ Delay: {reason}")
         elif i == st.session_state.current_stage:
             st.warning(stage)
@@ -54,17 +54,17 @@ if st.session_state.current_stage < len(stages):
     current_stage_name = stages[st.session_state.current_stage]
     stage_reasons = delay_reasons_per_stage[current_stage_name]
 
-    if st.button("🚀 Fix Delay / Move to Next Stage"):
-        # Introduce new delay if available
+    if st.button("🚀 Move to Next Stage / Fix Delay"):
+        # Introduce delay one by one first
         if st.session_state.delay_index < len(stage_reasons):
             next_reason = stage_reasons[st.session_state.delay_index]
             st.session_state.delays[current_stage_name].append(next_reason)
             st.session_state.delay_index += 1
-        # Fix earliest existing delay
+        # Fix delay one by one
         elif st.session_state.delays[current_stage_name]:
             fixed_reason = st.session_state.delays[current_stage_name].pop(0)
             st.session_state.fixes.append(f"Fix applied for: {fixed_reason} at {current_stage_name}")
-        # All delays fixed, move to next stage
+        # All delays handled, move to next stage
         else:
             st.session_state.current_stage += 1
             st.session_state.delay_index = 0
