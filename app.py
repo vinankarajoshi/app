@@ -35,7 +35,7 @@ else:
     delay_action_messages = {
         "Customer funds unavailable": "Contact customer to confirm fund availability.",
         "Stock shortage": "Check alternate warehouses or postpone order.",
-        "Incorrect Material": "Raise return request and reinitiate FO.",
+        "Incorrect Material code": "Raise return request and reinitiate FO.",
         "Vehicle Unavailable": "Engage with alternate transporter.",
         "Dock waiting": "Contact CD manager to free up dock slot.",
         "Underload": "Fill with additional load or reschedule delivery.",
