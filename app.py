@@ -1,4 +1,4 @@
-""import streamlit as st
+import streamlit as st
 import time
 
 st.set_page_config(page_title="O2D Simulation", layout="wide")
@@ -109,17 +109,15 @@ if st.session_state.show_fix_ui and st.session_state.current_delay:
         st.session_state.fixes.append(f"Fix applied for: {reason} at {stage}")
         st.session_state.fixed_delays.add((stage, reason))
         st.session_state.actions_per_stage[stage] += 1
+        st.session_state.delays[stage].remove(reason)
         st.session_state.show_fix_ui = False
+        st.session_state.current_delay = None
 
-        # Remove the fixed delay from delays list
-        if reason in st.session_state.delays[stage]:
-            st.session_state.delays[stage].remove(reason)
-
-        # Check if all delays are fixed
-        remaining_reasons = [r for r in delay_reasons_per_stage[stage] if (stage, r) not in st.session_state.fixed_delays]
-        if not remaining_reasons:
+        # Check if all delays are fixed for the stage
+        if not st.session_state.delays[stage]:
+            elapsed = time.time() - st.session_state.stage_start_time
+            st.session_state.time_per_stage[stage] += elapsed
             st.session_state.current_stage += 1
-            st.session_state.delay_index = 0
             if st.session_state.current_stage < len(stages):
                 st.session_state.stage_start_time = time.time()
             else:
@@ -128,7 +126,6 @@ if st.session_state.show_fix_ui and st.session_state.current_delay:
                 st.success("✅ Order Successfully Delivered!")
                 st.toast("🎉 Order has been delivered! Click button again to reset.", icon="✅")
 
-        st.session_state.current_delay = None
         st.rerun()
 
 # Proceed Button
@@ -139,27 +136,13 @@ if not st.session_state.order_complete and not st.session_state.show_fix_ui:
 
         if st.session_state.delay_index < len(stage_reasons):
             next_reason = stage_reasons[st.session_state.delay_index]
-            if next_reason not in st.session_state.delays[current_stage_name]:
-                st.session_state.delays[current_stage_name].append(next_reason)
-                st.session_state.all_delays_encountered.append((current_stage_name, next_reason))
-                st.session_state.current_delay = (current_stage_name, next_reason)
-                st.session_state.show_fix_ui = True
-                st.session_state.delay_index += 1
+            st.session_state.delays[current_stage_name].append(next_reason)
+            st.session_state.all_delays_encountered.append((current_stage_name, next_reason))
+            st.session_state.current_delay = (current_stage_name, next_reason)
+            st.session_state.show_fix_ui = True
+            st.session_state.delay_index += 1
 
-                elapsed = time.time() - st.session_state.stage_start_time
-                st.session_state.time_per_stage[current_stage_name] += elapsed
-                st.session_state.stage_start_time = time.time()
-                st.rerun()
-        else:
-            st.session_state.current_stage += 1
-            st.session_state.delay_index = 0
-            if st.session_state.current_stage < len(stages):
-                st.session_state.stage_start_time = time.time()
-            else:
-                st.session_state.order_complete = True
-                st.success("✅ Order Successfully Delivered!")
-                st.toast("🎉 Order has been delivered! Click button again to reset.", icon="✅")
-            st.rerun()
+        st.rerun()
 
 # Reset Button
 if st.session_state.order_complete:
