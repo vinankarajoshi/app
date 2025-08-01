@@ -36,6 +36,21 @@ fix_messages = {
     "POD entry delayed": "Manual POD entry authorized and uploaded."
 }
 
+# Custom action messages
+action_messages = {
+    "Customer funds unavailable": "Engage with customer to provide short-term credit facility.",
+    "Stock shortage": "Coordinate with nearby warehouse to transfer required stock.",
+    "Incorrect Material": "Initiate corrective dispatch and halt incorrect delivery.",
+    "Vehicle Unavailable": "Reach out to backup transporter to arrange an alternative.",
+    "Dock waiting": "Request urgent clearance from dock supervisor.",
+    "Underload": "Club with nearby FO to achieve load optimization.",
+    "No entry window": "Request revised entry approval through control room.",
+    "Traffic/Road blocks": "Communicate with driver to reroute via approved alternate.",
+    "CD weekly off": "Seek exception approval for delivery on off day.",
+    "Unloading Delayed": "Deploy additional resources at customer site.",
+    "POD entry delayed": "Authorize manual POD update by logistics officer."
+}
+
 # Session states
 if 'current_stage' not in st.session_state:
     st.session_state.current_stage = 0
@@ -106,13 +121,16 @@ if not st.session_state.order_complete:
         current_stage_name = stages[st.session_state.current_stage]
 
         if st.session_state.show_fix_prompt:
-            with st.container():
-                st.markdown("""
-                    <div style='padding: 2rem; margin: 2rem auto; background-color: #fff3f3; border: 2px solid red; border-radius: 10px; text-align: center; width: 60%;'>
-                        <h2>⏱️ Delay Encountered</h2>
-                        <p style='font-size: 1.2rem;'>""" + st.session_state.last_delay_reason + """</p>
+            reason = st.session_state.last_delay_reason
+            action_msg = action_messages.get(reason, "Take appropriate action.")
+            st.markdown(f"""
+                <div style='padding: 2rem; margin: 2rem auto; background-color: #fff3f3; border: 2px solid red; border-radius: 10px; text-align: center; width: 60%;'>
+                    <h2>⏱️ Delay Encountered</h2>
+                    <p style='font-size: 1.2rem;'><b>Reason:</b> {reason}</p>
+                    <h3 style='margin-top: 1rem;'>📌 Take Action</h3>
+                    <p style='font-size: 1.1rem;'>{action_msg}</p>
                 </div>
-                """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
             if st.button("✅ Apply Fix", key="fix_button"):
                 fixed_reason = st.session_state.delays[current_stage_name].pop(0)
