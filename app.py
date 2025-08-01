@@ -95,23 +95,3 @@ else:
         st.rerun()
 
 st.divider()
-
-col1, col2 = st.columns(2)
-with col1:
-    st.subheader("❌ Delays Encountered")
-    if st.session_state.all_delays_encountered:
-        for stage, reason in st.session_state.all_delays_encountered:
-            if (stage, reason) in st.session_state.fixed_delays:
-                st.warning(f"- **{stage}**: ✅ Fixed: {reason}")
-            else:
-                st.error(f"- **{stage}**: ⏱️ Delay: {reason}")
-    else:
-        st.write("No delays so far.")
-
-with col2:
-    st.subheader("🔧 Fixes Applied")
-    if st.session_state.fixes:
-        for fix in st.session_state.fixes:
-            st.write(f"- {fix}")
-    else:
-        st.write("No fixes applied yet.")
