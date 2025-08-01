@@ -78,19 +78,6 @@ delay_action_messages = {
     "POD entry delayed": "Push for manual POD entry in system."
 }
 
-# Start screen
-if not st.session_state.simulation_started:
-    st.markdown("<h1 style='text-align: center;'>Welcome to Nestlé</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; font-size: 22px;'>Would you like to place an order?</p>", unsafe_allow_html=True)
-    if st.button("🚀 PLACE ORDER", use_container_width=True):
-        st.session_state.simulation_started = True
-        st.session_state.current_stage = 0
-        st.session_state.delays = {stage: [] for stage in stages}
-        st.session_state.time_per_stage = {stage: 0 for stage in stages}
-        st.session_state.actions_per_stage = {stage: 0 for stage in stages}
-        st.rerun()
-    st.stop()
-
 # Main simulation UI starts here
 st.title("🚚 Order to Delivery (O2D) Simulation Interface")
 
