@@ -32,6 +32,8 @@ if 'fixes' not in st.session_state:
     st.session_state.fixes = []
 if 'delay_index' not in st.session_state:
     st.session_state.delay_index = 0
+if 'all_delays_encountered' not in st.session_state:
+    st.session_state.all_delays_encountered = []
 
 cols = st.columns(len(stages))
 
@@ -59,6 +61,7 @@ if st.session_state.current_stage < len(stages):
         if st.session_state.delay_index < len(stage_reasons):
             next_reason = stage_reasons[st.session_state.delay_index]
             st.session_state.delays[current_stage_name].append(next_reason)
+            st.session_state.all_delays_encountered.append((current_stage_name, next_reason))
             st.session_state.delay_index += 1
         # Fix delay one by one
         elif st.session_state.delays[current_stage_name]:
@@ -76,6 +79,7 @@ if st.button("🔄 Reset Simulation"):
     st.session_state.delays = {stage: [] for stage in stages}
     st.session_state.fixes = []
     st.session_state.delay_index = 0
+    st.session_state.all_delays_encountered = []
     st.rerun()
 
 st.divider()
@@ -83,11 +87,9 @@ st.divider()
 col1, col2 = st.columns(2)
 with col1:
     st.subheader("❌ Delays Encountered")
-    any_delay = any(st.session_state.delays[stage] for stage in stages)
-    if any_delay:
-        for stage in stages:
-            for reason in st.session_state.delays[stage]:
-                st.write(f"- **{stage}**: {reason}")
+    if st.session_state.all_delays_encountered:
+        for stage, reason in st.session_state.all_delays_encountered:
+            st.write(f"- **{stage}**: {reason}")
     else:
         st.write("No delays so far.")
 
