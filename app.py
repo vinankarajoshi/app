@@ -1,5 +1,6 @@
 import streamlit as st
 import time
+import random
 
 st.set_page_config(page_title="O2D Simulation", layout="wide")
 
@@ -25,7 +26,7 @@ delay_reasons = [
 if 'current_stage' not in st.session_state:
     st.session_state.current_stage = 0
 if 'delays' not in st.session_state:
-    st.session_state.delays = []
+    st.session_state.delays = {stage: [] for stage in stages}
 if 'fixes' not in st.session_state:
     st.session_state.fixes = []
 
@@ -35,10 +36,12 @@ for i, stage in enumerate(stages):
     with cols[i]:
         if i < st.session_state.current_stage:
             st.success(stage)
+            for reason in st.session_state.delays[stage]:
+                st.error(f"⏱️ Delay: {reason}")
         elif i == st.session_state.current_stage:
             st.warning(stage)
-            if st.session_state.delays and st.session_state.delays[-1][0] == stage:
-                st.error(f"⏱️ Delay: {st.session_state.delays[-1][1]}")
+            for reason in st.session_state.delays[stage]:
+                st.error(f"⏱️ Delay: {reason}")
         else:
             st.info(stage)
 
@@ -49,8 +52,9 @@ if st.session_state.current_stage < len(stages) - 1:
 
     with col1:
         if st.button("Advance to Next Stage"):
-            delay = delay_reasons[st.session_state.current_stage]
-            st.session_state.delays.append((stages[st.session_state.current_stage], delay))
+            reasons = random.sample(delay_reasons, k=2)  # multiple reasons per stage
+            for reason in reasons:
+                st.session_state.delays[stages[st.session_state.current_stage]].append(reason)
 
     with col2:
         if st.button("Apply Fix & Proceed"):
@@ -61,7 +65,7 @@ else:
 
 if st.button("🔄 Reset Simulation"):
     st.session_state.current_stage = 0
-    st.session_state.delays = []
+    st.session_state.delays = {stage: [] for stage in stages}
     st.session_state.fixes = []
     st.rerun()
 
@@ -70,9 +74,11 @@ st.divider()
 col1, col2 = st.columns(2)
 with col1:
     st.subheader("❌ Delays Encountered")
-    if st.session_state.delays:
-        for stage, reason in st.session_state.delays:
-            st.write(f"- **{stage}**: {reason}")
+    any_delay = any(st.session_state.delays[stage] for stage in stages)
+    if any_delay:
+        for stage in stages:
+            for reason in st.session_state.delays[stage]:
+                st.write(f"- **{stage}**: {reason}")
     else:
         st.write("No delays so far.")
 
