@@ -104,8 +104,9 @@ else:
         with cols[i]:
             if i < st.session_state.current_stage:
                 st.success(stage)
-                if i in st.session_state.stage_milestones:
-                    st.markdown(f"<div style='text-align:center; font-weight:bold; color:green;'>{st.session_state.stage_milestones[i]}</div>", unsafe_allow_html=True)
+                milestone_msg = st.session_state.stage_milestones.get(i)
+                if milestone_msg:
+                    st.info(milestone_msg)
             elif i == st.session_state.current_stage:
                 st.warning(stage)
             else:
@@ -145,10 +146,14 @@ else:
                 st.session_state.show_fix_ui = True
                 st.session_state.delay_index += 1
             else:
-                # No more delays in this stage
                 st.session_state.delay_index = 0
-                st.session_state.stage_milestones[st.session_state.current_stage] = stage_completion_messages[st.session_state.current_stage]
+                completion_msg = stage_completion_messages[st.session_state.current_stage]
+                st.session_state.stage_milestones[st.session_state.current_stage] = completion_msg
+                st.session_state.actions_per_stage[stage] += 1
+                st.session_state.current_delay = None
+                st.session_state.show_fix_ui = False
                 st.session_state.current_stage += 1
+
                 if st.session_state.current_stage < len(stages):
                     st.session_state.stage_start_time = time.time()
                 else:
