@@ -49,12 +49,8 @@ if st.session_state.current_stage < len(stages) - 1:
 
     with col1:
         if st.button("Advance to Next Stage"):
-            from random import random
-            if random() < 0.4:
-                delay = delay_reasons[st.session_state.current_stage]
-                st.session_state.delays.append((stages[st.session_state.current_stage], delay))
-            else:
-                st.session_state.current_stage += 1
+            delay = delay_reasons[st.session_state.current_stage]
+            st.session_state.delays.append((stages[st.session_state.current_stage], delay))
 
     with col2:
         if st.button("Apply Fix & Proceed"):
