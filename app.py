@@ -71,12 +71,10 @@ if not st.session_state.order_complete:
                 st.session_state.delays[current_stage_name].append(next_reason)
                 st.session_state.all_delays_encountered.append((current_stage_name, next_reason))
                 st.session_state.delay_index += 1
-                st.toast(f"⏱️ Delay encountered: {next_reason}", icon="❌")
             elif st.session_state.delays[current_stage_name]:
                 fixed_reason = st.session_state.delays[current_stage_name].pop(0)
                 st.session_state.fixes.append(f"Fix applied for: {fixed_reason} at {current_stage_name}")
                 st.session_state.fixed_delays.add((current_stage_name, fixed_reason))
-                st.toast(f"🔧 Fix applied: {fixed_reason}", icon="✅")
             else:
                 st.session_state.current_stage += 1
                 st.session_state.delay_index = 0
@@ -84,7 +82,6 @@ if not st.session_state.order_complete:
                     st.session_state.delivered = True
                     st.session_state.order_complete = True
                     st.success("✅ Order Successfully Delivered!")
-                    st.toast("🎉 Order has been delivered! Click button again to reset.", icon="✅")
 else:
     if st.button("🔄 Reset Simulation"):
         st.session_state.current_stage = 0
