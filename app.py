@@ -13,15 +13,13 @@ Simulate an order as it moves through the supply chain stages. Encounter delays 
 st.divider()
 
 st.subheader("📦 Current Order Status")
-stages = ["Order Placed", "Processing", "FO Created", "Dispatched", "In Transit", "Delivered"]
+stages = ["Order processing", "FO and vehicle placement", "In Transit", "Reached Customer"]
 
 delay_reasons_per_stage = {
-    "Order Placed": ["Customer funds unavailable", "Incorrect order format"],
-    "Processing": ["Manual truncation required", "System error"],
-    "FO Created": ["Dock unavailable", "FO approval pending"],
-    "Dispatched": ["Truck mismatch", "Underload detected"],
-    "In Transit": ["GPS lost", "Route blocked", "No entry window"],
-    "Delivered": ["POD delay", "Customer unavailable", "CD weekly off"]
+    "Order processing": ["Customer funds unavailable", "Stock shortage", "Incorrect Material"],
+    "FO and vehicle placement": ["Vehicle Unavailable", "Dock waiting", "Underload"],
+    "In Transit": [ "No entry window", "Traffic/Road blocks" ],
+    "Reached Customer": ["CD weekly off", "Unloading Delayed", "POD entry delayed"]
 }
 
 if 'current_stage' not in st.session_state:
@@ -70,7 +68,7 @@ if not st.session_state.order_complete:
         current_stage_name = stages[st.session_state.current_stage]
         stage_reasons = delay_reasons_per_stage[current_stage_name]
 
-        if st.button("🚀 Move to Next Stage / Fix Delay"):
+        if st.button("🚀 PROCEED"):
             if st.session_state.delay_index < len(stage_reasons):
                 next_reason = stage_reasons[st.session_state.delay_index]
                 st.session_state.delays[current_stage_name].append(next_reason)
