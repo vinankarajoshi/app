@@ -12,9 +12,6 @@ if not st.session_state.order_started:
         <div style='text-align:center;'>
             <h1 style='font-size:48px;'>👋 Welcome to Nestlé's O2D Simulation</h1>
             <p style='font-size:24px;'>Would you like to place an order?</p>
-            <form action="#" method="post">
-                <button type="submit" name="order" style='font-size:24px; padding:10px 30px; border-radius:10px;'>📦 PLACE ORDER</button>
-            </form>
         </div>
     """, unsafe_allow_html=True)
 
@@ -27,6 +24,8 @@ else:
 
     # Stage info
     stages = ["Order processing", "FO and vehicle placement", "In Transit", "Reached Customer"]
+    stage_completion_messages = ["OBD Created", "Vehicle Dispatched", "Reached Location", "Delivery Completed"]
+
     delay_reasons_per_stage = {
         "Order processing": ["Customer funds unavailable", "Stock shortage", "Incorrect Material"],
         "FO and vehicle placement": ["Vehicle Unavailable", "Dock waiting", "Underload"],
@@ -76,6 +75,8 @@ else:
         st.session_state.current_delay = None
     if 'show_fix_ui' not in st.session_state:
         st.session_state.show_fix_ui = False
+    if 'stage_milestones' not in st.session_state:
+        st.session_state.stage_milestones = {}
 
     # Top Metrics
     total_time = int(time.time() - st.session_state.start_time)
@@ -103,6 +104,8 @@ else:
         with cols[i]:
             if i < st.session_state.current_stage:
                 st.success(stage)
+                if i in st.session_state.stage_milestones:
+                    st.markdown(f"<div style='text-align:center; font-weight:bold; color:green;'>{st.session_state.stage_milestones[i]}</div>", unsafe_allow_html=True)
             elif i == st.session_state.current_stage:
                 st.warning(stage)
             else:
@@ -144,6 +147,7 @@ else:
             else:
                 # No more delays in this stage
                 st.session_state.delay_index = 0
+                st.session_state.stage_milestones[st.session_state.current_stage] = stage_completion_messages[st.session_state.current_stage]
                 st.session_state.current_stage += 1
                 if st.session_state.current_stage < len(stages):
                     st.session_state.stage_start_time = time.time()
@@ -193,6 +197,7 @@ else:
             st.session_state.actions_per_stage = {stage: 0 for stage in stages}
             st.session_state.current_delay = None
             st.session_state.show_fix_ui = False
+            st.session_state.stage_milestones = {}
             st.rerun()
 
     st.divider()
