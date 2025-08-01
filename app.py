@@ -95,10 +95,14 @@ else:
                 st.info(stage)
 
             for reason in delay_reasons_per_stage[stage]:
-                if (stage, reason) in st.session_state.fixed_delays:
-                    st.warning(f"✅ Fixed: {reason}")
-                elif (stage, reason) in st.session_state.all_delays_encountered:
+                encountered = (stage, reason) in st.session_state.all_delays_encountered
+                fixed = (stage, reason) in st.session_state.fixed_delays
+            
+                if encountered and fixed:
+                    st.warning(f"⏱️ Delay: {reason}\n\n✅ Fixed: {reason}")
+                elif encountered:
                     st.error(f"⏱️ Delay: {reason}")
+
 
     progress_value = min((st.session_state.current_stage + 1) / len(stages), 0.999)
     st.progress(progress_value)
