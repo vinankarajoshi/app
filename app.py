@@ -38,6 +38,8 @@ if 'delivered' not in st.session_state:
     st.session_state.delivered = False
 if 'order_complete' not in st.session_state:
     st.session_state.order_complete = False
+if 'order_reset' not in st.session_state:
+    st.session_state.order_reset = False
 
 cols = st.columns(len(stages))
 
@@ -45,12 +47,18 @@ for i, stage in enumerate(stages):
     with cols[i]:
         if i < st.session_state.current_stage:
             st.success(stage)
-            for reason in st.session_state.delays[stage]:
-                st.error(f"⏱️ Delay: {reason}")
+            for reason in delay_reasons_per_stage[stage]:
+                if reason in st.session_state.delays[stage]:
+                    st.warning(f"⚠️ Fixed: {reason}")
+                elif (stage, reason) in st.session_state.all_delays_encountered:
+                    st.error(f"⏱️ Delay: {reason}")
         elif i == st.session_state.current_stage:
             st.warning(stage)
-            for reason in st.session_state.delays[stage]:
-                st.error(f"⏱️ Delay: {reason}")
+            for reason in delay_reasons_per_stage[stage]:
+                if reason in st.session_state.delays[stage]:
+                    st.error(f"⏱️ Delay: {reason}")
+                elif (stage, reason) in st.session_state.all_delays_encountered:
+                    st.warning(f"⚠️ Fixed: {reason}")
         else:
             st.info(stage)
 
@@ -80,7 +88,7 @@ if not st.session_state.order_complete:
                     st.session_state.delivered = True
                     st.session_state.order_complete = True
                     st.success("✅ Order Successfully Delivered!")
-                    st.toast("🎉 Order has been delivered!", icon="✅")
+                    st.toast("🎉 Order has been delivered! Click button again to reset.", icon="✅")
 else:
     if st.button("🔄 Reset Simulation"):
         st.session_state.current_stage = 0
@@ -90,6 +98,7 @@ else:
         st.session_state.all_delays_encountered = []
         st.session_state.delivered = False
         st.session_state.order_complete = False
+        st.session_state.order_reset = True
         st.rerun()
 
 st.divider()
