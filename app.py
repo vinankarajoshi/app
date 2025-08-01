@@ -3,6 +3,29 @@ import time
 
 st.set_page_config(page_title="O2D Simulation", layout="wide")
 
+# Opening Page: Welcome Screen
+if 'order_started' not in st.session_state:
+    st.session_state.order_started = False
+
+if not st.session_state.order_started:
+    st.markdown(
+        """
+        <div style='text-align: center; padding-top: 100px;'>
+            <h1 style='font-size: 50px; color: #005F7F;'>👋 Welcome to Nestlé's O2D Simulator</h1>
+            <p style='font-size: 20px; color: #333;'>Experience how customer orders are delivered step-by-step</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    col_space, col_button, col_space2 = st.columns([2, 1, 2])
+    with col_button:
+        if st.button("📦 PLACE ORDER", use_container_width=True):
+            st.session_state.order_started = True
+            st.rerun()
+
+    st.stop()
+
 st.title("🚚 Order to Delivery (O2D) Simulation Interface")
 
 # Stage info
