@@ -57,14 +57,14 @@ if st.session_state.current_stage < len(stages):
     col1, col2 = st.columns(2)
 
     with col1:
-        if st.button("Next Delay / Initialize Delay"):
+        if st.button("PROCEED to next steps"):
             if st.session_state.delay_index < len(stage_reasons):
                 next_reason = stage_reasons[st.session_state.delay_index]
                 st.session_state.delays[current_stage_name].append(next_reason)
                 st.session_state.delay_index += 1
 
     with col2:
-        if st.button("Apply Fix"):
+        if st.button("Fix the issue: TOUCH"):
             if st.session_state.delay_index > 0:
                 last_reason = stage_reasons[st.session_state.delay_index - 1]
                 st.session_state.fixes.append(f"Fix applied for: {last_reason} at {current_stage_name}")
