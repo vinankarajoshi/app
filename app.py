@@ -78,17 +78,15 @@ if not st.session_state.order_complete:
                     <div style='padding: 2rem; margin: 2rem auto; background-color: #fff3f3; border: 2px solid red; border-radius: 10px; text-align: center; width: 60%;'>
                         <h2>⏱️ Delay Encountered</h2>
                         <p style='font-size: 1.2rem;'>""" + st.session_state.last_delay_reason + """</p>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
+                </div>
+                """, unsafe_allow_html=True)
 
-                if st.button("✅ FIX THIS"):
-                    fixed_reason = st.session_state.delays[current_stage_name].pop(0)
-                    st.session_state.fixes.append(f"Fix applied for: {fixed_reason} at {current_stage_name}")
-                    st.session_state.fixed_delays.add((current_stage_name, fixed_reason))
-                    feedback_placeholder.success(f"🔧 Fix applied: {fixed_reason}")
-                    st.session_state.show_fix_prompt = False
+            if st.button("✅ FIX THIS", key="fix_button"):
+                fixed_reason = st.session_state.delays[current_stage_name].pop(0)
+                st.session_state.fixes.append(f"Fix applied for: {fixed_reason} at {current_stage_name}")
+                st.session_state.fixed_delays.add((current_stage_name, fixed_reason))
+                feedback_placeholder.success(f"🔧 Fix applied: {fixed_reason}")
+                st.session_state.show_fix_prompt = False
 
         elif st.button("🚀 PROCEED"):
             if st.session_state.delay_index < len(stage_reasons):
