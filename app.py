@@ -52,7 +52,8 @@ for i, stage in enumerate(stages):
         else:
             st.info(stage)
 
-st.progress((st.session_state.current_stage + 1) / len(stages))
+progress_value = min((st.session_state.current_stage + 1) / len(stages), 0.999)
+st.progress(progress_value)
 
 if st.session_state.current_stage < len(stages):
     current_stage_name = stages[st.session_state.current_stage]
@@ -104,4 +105,4 @@ with col2:
         for fix in st.session_state.fixes:
             st.write(f"- {fix}")
     else:
-        st.write("No fixes applied yet.")
+        st.write("No fixes applied
