@@ -1,91 +1,177 @@
 import streamlit as st
-import datetime
+import time
 
 st.set_page_config(page_title="O2D Simulation", layout="wide")
 
-# Initialize session state
-if 'order_started' not in st.session_state:
-    st.session_state.order_started = False
-if 'stage' not in st.session_state:
-    st.session_state.stage = 0
-if 'fix_log' not in st.session_state:
-    st.session_state.fix_log = []
-if 'current_time' not in st.session_state:
-    st.session_state.current_time = datetime.datetime(2025, 8, 1, 9, 0)  # Start time: 9:00 AM
-
-# Delay mapping in hours
-delay_mapping = {
-    "Customer funds unavailable": 3,
-    "Stock shortage": 1,
-    "Incorrect Material": 2,
-    "Vehicle Unavailable": 4,
-    "Dock waiting": 2,
-    "Underload": 12,
-    "No entry window": 8,
-    "Traffic/Road blocks": 3,
-    "CD weekly off": 12,
-    "Unloading Delayed": 2,
-    "POD entry delayed": 5
-}
-
-# Welcome screen
-if not st.session_state.order_started:
-    st.markdown(
-        """
-        <div style='text-align: center; padding-top: 100px;'>
-            <h1 style='font-size: 50px; color: #005F7F;'>👋 Welcome to Nestlé's O2D Simulator</h1>
-            <p style='font-size: 20px; color: #333;'>Experience how customer orders are delivered step-by-step</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    col_space, col_button, col_space2 = st.columns([2, 1, 2])
-    with col_button:
-        if st.button("📦 PLACE ORDER", use_container_width=True):
-            st.session_state.order_started = True
-            st.rerun()
-
-    st.stop()
-
-# Define stages and their issues
-stages = [
-    ("Order Processing", ["Customer funds unavailable", "Stock shortage", "Incorrect Material"]),
-    ("FO and Vehicle Placement", ["Vehicle Unavailable", "Dock waiting", "Underload"]),
-    ("In Transit", ["No entry window", "Traffic/Road blocks", "CD weekly off"]),
-    ("Delivery", ["Unloading Delayed", "POD entry delayed"])
-]
-
 st.title("🚚 Order to Delivery (O2D) Simulation Interface")
 
-# Display current simulation time
-st.markdown(f"**🕒 Current Simulation Time:** {st.session_state.current_time.strftime('%d-%b-%Y %I:%M %p')}")
+# Stage info
+stages = ["Order processing", "FO and vehicle placement", "In Transit", "Reached Customer"]
+delay_reasons_per_stage = {
+    "Order processing": ["Customer funds unavailable", "Stock shortage", "Incorrect Material"],
+    "FO and vehicle placement": ["Vehicle Unavailable", "Dock waiting", "Underload"],
+    "In Transit": ["No entry window", "Traffic/Road blocks"],
+    "Reached Customer": ["CD weekly off", "Unloading Delayed", "POD entry delayed"]
+}
+delay_action_messages = {
+    "Customer funds unavailable": "Contact customer to confirm fund availability.",
+    "Stock shortage": "Check alternate warehouses or postpone order.",
+    "Incorrect Material": "Raise return request and reinitiate FO.",
+    "Vehicle Unavailable": "Engage with alternate transporter.",
+    "Dock waiting": "Contact CD manager to free up dock slot.",
+    "Underload": "Fill with additional load or reschedule delivery.",
+    "No entry window": "Wait for next entry slot or apply for special pass.",
+    "Traffic/Road blocks": "Reroute shipment using GPS alternatives.",
+    "CD weekly off": "Reschedule delivery to next working day.",
+    "Unloading Delayed": "Call unloading team to prioritize.",
+    "POD entry delayed": "Push for manual POD entry in system."
+}
 
-# Display stages
-for i, (stage_name, issues) in enumerate(stages):
-    col = st.columns(1)[0]
-    with col:
-        st.subheader(f"Step {i+1}: {stage_name}")
-        if st.session_state.stage == i:
-            for issue in issues:
-                if st.button(f"Fix: {issue}", key=f"fix_{i}_{issue}"):
-                    delay = delay_mapping.get(issue, 0)
-                    st.session_state.current_time += datetime.timedelta(hours=delay)
-                    st.session_state.fix_log.append((stage_name, issue, delay))
-                    st.rerun()
-            if st.button("✅ All Issues Fixed – Proceed", key=f"next_{i}"):
-                st.session_state.stage += 1
-                st.rerun()
-        elif st.session_state.stage > i:
-            st.success(f"✅ {stage_name} Completed at {st.session_state.current_time.strftime('%I:%M %p')}")
+# Session states
+if 'current_stage' not in st.session_state:
+    st.session_state.current_stage = 0
+if 'delays' not in st.session_state:
+    st.session_state.delays = {stage: [] for stage in stages}
+if 'fixes' not in st.session_state:
+    st.session_state.fixes = []
+if 'delay_index' not in st.session_state:
+    st.session_state.delay_index = 0
+if 'all_delays_encountered' not in st.session_state:
+    st.session_state.all_delays_encountered = []
+if 'delivered' not in st.session_state:
+    st.session_state.delivered = False
+if 'order_complete' not in st.session_state:
+    st.session_state.order_complete = False
+if 'fixed_delays' not in st.session_state:
+    st.session_state.fixed_delays = set()
+if 'start_time' not in st.session_state:
+    st.session_state.start_time = time.time()
+if 'stage_start_time' not in st.session_state:
+    st.session_state.stage_start_time = time.time()
+if 'time_per_stage' not in st.session_state:
+    st.session_state.time_per_stage = {stage: 0 for stage in stages}
+if 'actions_per_stage' not in st.session_state:
+    st.session_state.actions_per_stage = {stage: 0 for stage in stages}
+if 'current_delay' not in st.session_state:
+    st.session_state.current_delay = None
+if 'show_fix_ui' not in st.session_state:
+    st.session_state.show_fix_ui = False
 
-# Display fix log
-if st.session_state.fix_log:
-    with st.expander("🛠️ View Fix Log"):
-        for stage, issue, delay in st.session_state.fix_log:
-            st.write(f"🔧 {issue} in {stage} → +{delay} hrs")
+# Top Metrics
+total_time = int(time.time() - st.session_state.start_time)
+total_actions = sum(st.session_state.actions_per_stage.values())
 
-# Final message
-if st.session_state.stage >= len(stages):
-    st.balloons()
-    st.success(f"🎉 Delivery Completed at {st.session_state.current_time.strftime('%d-%b-%Y %I:%M %p')}")
+st.markdown("### 📉 Simulation Summary")
+col_total_time, col_total_actions = st.columns(2)
+col_total_time.metric("⏱️ Total Time Elapsed (s)", total_time)
+col_total_actions.metric("🛠️ Total Actions Taken", total_actions)
+
+# Section-wise summary
+st.markdown("### 📊 Stage-wise Progress")
+stage_cols = st.columns(len(stages))
+for i, stage in enumerate(stages):
+    with stage_cols[i]:
+        st.markdown(f"**{stage}**")
+        st.metric("Time (s)", int(st.session_state.time_per_stage[stage]))
+        st.metric("Actions", st.session_state.actions_per_stage[stage])
+
+st.divider()
+
+st.subheader("📦 Current Order Status")
+cols = st.columns(len(stages))
+for i, stage in enumerate(stages):
+    with cols[i]:
+        if i < st.session_state.current_stage:
+            st.success(stage)
+        elif i == st.session_state.current_stage:
+            st.warning(stage)
+        else:
+            st.info(stage)
+
+        for reason in delay_reasons_per_stage[stage]:
+            if (stage, reason) in st.session_state.fixed_delays:
+                st.warning(f"✅ Fixed: {reason}")
+            elif (stage, reason) in st.session_state.all_delays_encountered:
+                st.error(f"⏱️ Delay: {reason}")
+
+progress_value = min((st.session_state.current_stage + 1) / len(stages), 0.999)
+st.progress(progress_value)
+
+# Fix UI
+if st.session_state.show_fix_ui and st.session_state.current_delay:
+    stage, reason = st.session_state.current_delay
+    st.error(f"""
+    ### ⏱️ Delay encountered: {reason}
+    #### 🛠 TAKE ACTION
+    {delay_action_messages[reason]}
+    """)
+    if st.button("✅ Fix this"):
+        st.session_state.fixes.append(f"Fix applied for: {reason} at {stage}")
+        st.session_state.fixed_delays.add((stage, reason))
+        st.session_state.actions_per_stage[stage] += 1
+        st.session_state.show_fix_ui = False
+        st.session_state.current_delay = None
+
+        # Move to next delay or stage
+        stage_reasons = delay_reasons_per_stage[stage]
+        if st.session_state.delay_index < len(stage_reasons):
+            next_reason = stage_reasons[st.session_state.delay_index]
+            st.session_state.delays[stage].append(next_reason)
+            st.session_state.all_delays_encountered.append((stage, next_reason))
+            st.session_state.current_delay = (stage, next_reason)
+            st.session_state.show_fix_ui = True
+            st.session_state.delay_index += 1
+        else:
+            # No more delays in this stage
+            st.session_state.delay_index = 0
+            st.session_state.current_stage += 1
+            if st.session_state.current_stage < len(stages):
+                st.session_state.stage_start_time = time.time()
+            else:
+                st.session_state.delivered = True
+                st.session_state.order_complete = True
+                st.success("✅ Order Successfully Delivered!")
+                st.toast("🎉 Order has been delivered! Click button again to reset.", icon="✅")
+
+        st.rerun()
+
+# Proceed Button
+if not st.session_state.order_complete and not st.session_state.show_fix_ui:
+    if st.button("🚀 PROCEED"):
+        current_stage_name = stages[st.session_state.current_stage]
+        stage_reasons = delay_reasons_per_stage[current_stage_name]
+
+        if st.session_state.delay_index < len(stage_reasons):
+            next_reason = stage_reasons[st.session_state.delay_index]
+            st.session_state.delays[current_stage_name].append(next_reason)
+            st.session_state.all_delays_encountered.append((current_stage_name, next_reason))
+            st.session_state.current_delay = (current_stage_name, next_reason)
+            st.session_state.show_fix_ui = True
+            st.session_state.delay_index += 1
+
+            # Record time for stage so far
+            elapsed = time.time() - st.session_state.stage_start_time
+            st.session_state.time_per_stage[current_stage_name] += elapsed
+            st.session_state.stage_start_time = time.time()
+            st.rerun()
+
+# Reset Button
+if st.session_state.order_complete:
+    if st.button("🔄 Reset Simulation"):
+        st.session_state.current_stage = 0
+        st.session_state.delays = {stage: [] for stage in stages}
+        st.session_state.fixes = []
+        st.session_state.delay_index = 0
+        st.session_state.all_delays_encountered = []
+        st.session_state.delivered = False
+        st.session_state.order_complete = False
+        st.session_state.fixed_delays = set()
+        st.session_state.start_time = time.time()
+        st.session_state.stage_start_time = time.time()
+        st.session_state.time_per_stage = {stage: 0 for stage in stages}
+        st.session_state.actions_per_stage = {stage: 0 for stage in stages}
+        st.session_state.current_delay = None
+        st.session_state.show_fix_ui = False
+        st.rerun()
+
+st.divider()
