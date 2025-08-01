@@ -17,7 +17,7 @@ stages = ["Order processing", "FO and vehicle placement", "In Transit", "Reached
 delay_reasons_per_stage = {
     "Order processing": ["Customer funds unavailable", "Stock shortage", "Incorrect Material"],
     "FO and vehicle placement": ["Vehicle Unavailable", "Dock waiting", "Underload"],
-    "In Transit": [ "No entry window", "Traffic/Road blocks" ],
+    "In Transit": ["No entry window", "Traffic/Road blocks"],
     "Reached Customer": ["CD weekly off", "Unloading Delayed", "POD entry delayed"]
 }
 
@@ -71,12 +71,10 @@ if not st.session_state.order_complete:
                 st.session_state.delays[current_stage_name].append(next_reason)
                 st.session_state.all_delays_encountered.append((current_stage_name, next_reason))
                 st.session_state.delay_index += 1
-                st.toast(f"⏱️ Delay encountered: {next_reason}", icon="❌")
             elif st.session_state.delays[current_stage_name]:
                 fixed_reason = st.session_state.delays[current_stage_name].pop(0)
                 st.session_state.fixes.append(f"Fix applied for: {fixed_reason} at {current_stage_name}")
                 st.session_state.fixed_delays.add((current_stage_name, fixed_reason))
-                st.toast(f"🔧 Fix applied: {fixed_reason}", icon="✅")
             else:
                 st.session_state.current_stage += 1
                 st.session_state.delay_index = 0
@@ -84,7 +82,6 @@ if not st.session_state.order_complete:
                     st.session_state.delivered = True
                     st.session_state.order_complete = True
                     st.success("✅ Order Successfully Delivered!")
-                    st.toast("🎉 Order has been delivered! Click button again to reset.", icon="✅")
 else:
     if st.button("🔄 Reset Simulation"):
         st.session_state.current_stage = 0
@@ -104,7 +101,10 @@ with col1:
     st.subheader("❌ Delays Encountered")
     if st.session_state.all_delays_encountered:
         for stage, reason in st.session_state.all_delays_encountered:
-            st.write(f"- **{stage}**: {reason}")
+            if (stage, reason) in st.session_state.fixed_delays:
+                st.warning(f"- **{stage}**: ✅ Fixed: {reason}")
+            else:
+                st.error(f"- **{stage}**: ⏱️ Delay: {reason}")
     else:
         st.write("No delays so far.")
 
