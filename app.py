@@ -7,13 +7,18 @@ if 'order_started' not in st.session_state:
     st.session_state.order_started = False
 
 if not st.session_state.order_started:
-    st.title("👋 Welcome to Nestlé's O2D Simulator")
     st.markdown("""
-        This simulation helps you visualize the journey of an order through Nestlé's supply chain.
-    """)
-    if st.button("📦 PLACE ORDER"):
-        st.session_state.order_started = True
-        st.rerun()
+        <div style='text-align: center;'>
+            <h1 style='font-size: 40px;'>👋 Welcome to Nestlé's O2D Simulator</h1>
+            <p style='font-size: 20px;'>This simulation helps you visualize the journey of an order through Nestlé's supply chain.</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([3, 2, 3])
+    with col2:
+        if st.button("📦 PLACE ORDER", key="start_button", use_container_width=True):
+            st.session_state.order_started = True
+            st.rerun()
 else:
     st.title("🚚 Order to Delivery (O2D) Simulation Interface")
 
