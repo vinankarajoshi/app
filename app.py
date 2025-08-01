@@ -27,7 +27,7 @@ else:
     stage_completion_messages = ["OBD Created", "Vehicle Dispatched", "Reached Location", "Delivery Completed"]
 
     delay_reasons_per_stage = {
-        "Order processing": ["Customer funds unavailable", "Stock shortage", "Incorrect Material"],
+        "Order processing": ["Customer funds unavailable", "Stock shortage", "Incorrect Material code"],
         "FO and vehicle placement": ["Vehicle Unavailable", "Dock waiting", "Underload"],
         "In Transit": ["No entry window", "Traffic/Road blocks"],
         "Reached Customer": ["CD weekly off", "Unloading Delayed", "POD entry delayed"]
@@ -111,7 +111,7 @@ else:
         #### 🛠 TAKE ACTION
         {delay_action_messages[reason]}
         """)
-        if st.button("✅ Fix this"):
+        if st.button("✅ Fix the issue and take required action"):
             st.session_state.fixes.append(f"Fix applied for: {reason} at {stage}")
             st.session_state.fixed_delays.add((stage, reason))
             st.session_state.actions_per_stage[stage] += 1
@@ -138,8 +138,6 @@ else:
                     st.session_state.delivered = True
                     st.session_state.order_complete = True
                     st.success("✅ Order Successfully Delivered!")
-                    st.toast("🎉 Order has been delivered! Click button again to reset.", icon="✅")
-
             st.rerun()
 
     # Proceed Button
