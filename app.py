@@ -1,6 +1,5 @@
 import streamlit as st
 import time
-import random
 
 st.set_page_config(page_title="O2D Simulation", layout="wide")
 
@@ -22,6 +21,7 @@ delay_reasons_per_stage = {
     "Reached Customer": ["CD weekly off", "Unloading Delayed", "POD entry delayed"]
 }
 
+# Session states
 if 'current_stage' not in st.session_state:
     st.session_state.current_stage = 0
 if 'delays' not in st.session_state:
@@ -36,8 +36,8 @@ if 'delivered' not in st.session_state:
     st.session_state.delivered = False
 if 'order_complete' not in st.session_state:
     st.session_state.order_complete = False
-if 'order_reset' not in st.session_state:
-    st.session_state.order_reset = False
+if 'fixed_delays' not in st.session_state:
+    st.session_state.fixed_delays = set()
 
 cols = st.columns(len(stages))
 
@@ -45,21 +45,18 @@ for i, stage in enumerate(stages):
     with cols[i]:
         if i < st.session_state.current_stage:
             st.success(stage)
-            for reason in delay_reasons_per_stage[stage]:
-                if reason in st.session_state.delays[stage]:
-                    st.warning(f"✅ Fixed: {reason}")
-                elif (stage, reason) in st.session_state.all_delays_encountered:
-                    st.error(f"⏱️ Delay: {reason}")
         elif i == st.session_state.current_stage:
             st.warning(stage)
-            for reason in delay_reasons_per_stage[stage]:
-                if reason in st.session_state.delays[stage]:
-                    st.error(f"⏱️ Delay: {reason}")
-                elif (stage, reason) in st.session_state.all_delays_encountered:
-                    st.warning(f"✅ Fixed: {reason}")
         else:
             st.info(stage)
 
+        for reason in delay_reasons_per_stage[stage]:
+            if (stage, reason) in st.session_state.fixed_delays:
+                st.warning(f"✅ Fixed: {reason}")
+            elif (stage, reason) in st.session_state.all_delays_encountered:
+                st.error(f"⏱️ Delay: {reason}")
+
+# Progress bar
 progress_value = min((st.session_state.current_stage + 1) / len(stages), 0.999)
 st.progress(progress_value)
 
@@ -78,6 +75,7 @@ if not st.session_state.order_complete:
             elif st.session_state.delays[current_stage_name]:
                 fixed_reason = st.session_state.delays[current_stage_name].pop(0)
                 st.session_state.fixes.append(f"Fix applied for: {fixed_reason} at {current_stage_name}")
+                st.session_state.fixed_delays.add((current_stage_name, fixed_reason))
                 st.toast(f"🔧 Fix applied: {fixed_reason}", icon="✅")
             else:
                 st.session_state.current_stage += 1
@@ -96,7 +94,7 @@ else:
         st.session_state.all_delays_encountered = []
         st.session_state.delivered = False
         st.session_state.order_complete = False
-        st.session_state.order_reset = True
+        st.session_state.fixed_delays = set()
         st.rerun()
 
 st.divider()
