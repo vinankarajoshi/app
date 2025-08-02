@@ -142,7 +142,7 @@ else:
             else:
                 st.info(stage)
         
-            # ✅ Then split the block into two columns
+            # ✅ Now create 2 inner columns
             left, right = st.columns([2, 1])
         
             with left:
@@ -162,13 +162,13 @@ else:
                         touches = touch_count.get(reason, "-")
                         st.markdown(
                             f"""
-                            <div style='padding:8px; background-color:#f0f2f6; border-radius:8px; margin-bottom:8px'>
-                                <b>Delay:</b> {delay} hrs<br>
-                                <b>Touches:</b> {touches}
+                            <div style='padding:8px; background-color:#f0f2f6; border-radius:8px; margin-bottom:8px; text-align:center;'>
+                                <div><b>Delay:</b> {delay} hrs</div>
+                                <div><b>Touches:</b> {touches}</div>
                             </div>
                             """,
-                            unsafe_allow_
-
+                            unsafe_allow_html=True
+                        )
 
 
     progress_value = min((st.session_state.current_stage + 1) / len(stages), 0.999)
