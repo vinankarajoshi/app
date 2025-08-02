@@ -148,19 +148,20 @@ else:
                 fixed = (stage, reason) in st.session_state.fixed_delays
         
                 left, right = st.columns([2, 1])  # side-by-side row per delay reason
-        
+                        
                 with left:
-                    if encountered:
+                    if encountered and fixed:
                         issue_html = f"""
                         <div style='padding:10px; background-color:#fff3cd; border-radius:8px; border:1px solid #ffeeba;'>
                             <div style='color:red; font-weight:bold;'>⚠️ ISSUE: {reason}</div>
+                            <div style='color:green; font-weight:bold;'>✅ FIXED: {action_taken[reason]}</div>
                         """
-                        if fixed:
-                            issue_html += f"""
-                            <div style='color:red; font-weight:bold;'>✅ FIXED: {action_taken[reason]}</div>
-                            """
-                        issue_html += "</div>"
-                        st.markdown(issue_html, unsafe_allow_html=True)
+                    elif encountered:
+                        <div style='padding:10px; background-color:#fff3cd; border-radius:8px; border:1px solid #ffeeba;'>
+                            <div style='color:red; font-weight:bold;'>⚠️ ISSUE: {reason}</div>
+                        """
+                    issue_html += "</div>"
+                    st.markdown(issue_html, unsafe_allow_html=True)
 
 
         
