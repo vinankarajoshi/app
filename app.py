@@ -151,14 +151,13 @@ else:
         
                 with left:
                     if encountered:
-                        action = action_taken.get(reason, "")
                         issue_html = f"""
                         <div style='padding:10px; background-color:#fff3cd; border-radius:8px; border:1px solid #ffeeba;'>
                             <div style='color:red; font-weight:bold;'>⚠️ ISSUE: {reason}</div>
                         """
                         if fixed:
                             issue_html += f"""
-                            <div style='color:green; font-weight:bold;'>✅ FIXED: {action}</div>
+                            <div style='color:green; font-weight:bold;'>✅ FIXED: {action_taken[reason]}</div>
                             """
                         issue_html += "</div>"
                         st.markdown(issue_html, unsafe_allow_html=True)
