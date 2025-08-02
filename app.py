@@ -151,9 +151,9 @@ else:
         
                 with left:
                     if encountered and fixed:
-                        st.warning(f"⏱️ Delay: {reason}\n\n✅ Fixed: {action_taken[reason]}")
+                        st.warning(f"⚠️ ISSUE: {reason}\n\n✅ Fixed: {action_taken[reason]}")
                     elif encountered:
-                        st.error(f"⏱️ Delay: {reason}")
+                        st.error(f"⚠️ ISSUE: {reason}")
         
                 with right:
                     if encountered:
