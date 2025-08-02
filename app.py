@@ -157,7 +157,7 @@ else:
                         """
                         if fixed:
                             issue_html += f"""
-                            <div style='color:green; font-weight:bold;'>✅ FIXED: {action_taken[reason]}</div>
+                            <div style='color:red; font-weight:bold;'>✅ FIXED: {action_taken[reason]}</div>
                             """
                         issue_html += "</div>"
                         st.markdown(issue_html, unsafe_allow_html=True)
