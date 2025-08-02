@@ -27,23 +27,52 @@ else:
     stage_completion_messages = ["OBD Created", "Vehicle Dispatched", "Reached Location", "Delivery Completed"]
 
     delay_reasons_per_stage = {
-        "Order processing": ["Customer funds unavailable", "Stock shortage", "Incorrect Material code"],
+        "Order processing": ["Customer funds unavailable", "Stock shortage", "Incorrect Material code", "Large order qty"],
         "FO and vehicle placement": ["Vehicle Unavailable", "Dock waiting", "Underload"],
         "In Transit": ["No entry window", "Traffic/Road blocks"],
         "Reached Customer": ["CD weekly off", "Unloading Delayed", "POD entry delayed"]
     }
     delay_action_messages = {
-        "Customer funds unavailable": "Contact customer to confirm fund availability.",
-        "Stock shortage": "Check alternate warehouses or postpone order.",
-        "Incorrect Material code": "Raise return request and reinitiate FO.",
-        "Vehicle Unavailable": "Engage with alternate transporter.",
-        "Dock waiting": "Contact CD manager to free up dock slot.",
-        "Underload": "Fill with additional load or reschedule delivery.",
-        "No entry window": "Wait for next entry slot or apply for special pass.",
-        "Traffic/Road blocks": "Reroute shipment using GPS alternatives.",
-        "CD weekly off": "Reschedule delivery to next working day.",
-        "Unloading Delayed": "Call unloading team to prioritize.",
-        "POD entry delayed": "Push for manual POD entry in system."
+        "Customer funds unavailable": "NEED TO WAIT UNTIL FUNDS REFLECT/CREATE MANUAL OBD LATER",
+        "Stock shortage": "ORDER QTY CHANGE- CSA",
+        "Incorrect Material code": "VB11 TO BE PERFORMED/ MANUALLY CHANGE CODE",
+        "Vehicle Unavailable": "NEED TO WAIT/ CALL UP FOR VEHICLE MANUALLY",
+        "Dock waiting": "WAITING TILL DOCK IS FREE",
+        "Underload": "WAITING TILL CLUB LOAD/ MANUALLY DROP QTY IF LESS",
+        "No entry window": "NEED TO WAIT AT CITY ENTRY POINT (IDLING)",
+        "Traffic/Road blocks": "DELAY ENCOUNTERED",
+        "CD weekly off": "WAIT FOR ANOTHER DAY",
+        "Unloading Delayed": "WAIT TILL CD UNLOADS",
+        "POD entry delayed": "ENTER POD MANUALLY (TPO OR SDS)",
+        "Large order qty": "SOOC TO BE PERFORMED"
+    }
+    touch_count = {
+        "Customer funds unavailable": 1,
+        "Stock shortage": 1,
+        "Incorrect Material code": 1,
+        "Vehicle Unavailable": 1,
+        "Dock waiting": 0,
+        "Underload": 1,
+        "No entry window": 0,
+        "Traffic/Road blocks": 0,
+        "CD weekly off": 0,
+        "Unloading Delayed": 0,
+        "POD entry delayed": 1,
+        "Large order qty": 1
+    }
+    delay_times = {
+        "Customer funds unavailable": 3,
+        "Stock shortage": 2,
+        "Incorrect Material code": 2,
+        "Vehicle Unavailable": 4,
+        "Dock waiting": 2,
+        "Underload": 4,
+        "No entry window": 8,
+        "Traffic/Road blocks": 3,
+        "CD weekly off": 24,
+        "Unloading Delayed": 4,
+        "POD entry delayed": 4,
+        "Large order qty": 1
     }
 
     # Session states
@@ -78,7 +107,6 @@ else:
     if 'stage_milestones' not in st.session_state:
         st.session_state.stage_milestones = {}
 
-    
     st.divider()
 
     st.subheader("📦 Current Order Status")
@@ -97,12 +125,11 @@ else:
             for reason in delay_reasons_per_stage[stage]:
                 encountered = (stage, reason) in st.session_state.all_delays_encountered
                 fixed = (stage, reason) in st.session_state.fixed_delays
-            
+
                 if encountered and fixed:
                     st.warning(f"⏱️ Delay: {reason}\n\n✅ Fixed: {reason}")
                 elif encountered:
                     st.error(f"⏱️ Delay: {reason}")
-
 
     progress_value = min((st.session_state.current_stage + 1) / len(stages), 0.999)
     st.progress(progress_value)
@@ -114,11 +141,13 @@ else:
         ### ⏱️ Delay encountered: {reason}
         #### 🛠 TAKE ACTION
         {delay_action_messages[reason]}
+        Touchpoints: {touch_count[reason]} | Delay: {delay_times[reason]} hrs
         """)
         if st.button("✅ Fix the issue and take required action"):
             st.session_state.fixes.append(f"Fix applied for: {reason} at {stage}")
             st.session_state.fixed_delays.add((stage, reason))
-            st.session_state.actions_per_stage[stage] += 1
+            st.session_state.actions_per_stage[stage] += touch_count[reason]
+            st.session_state.time_per_stage[stage] += delay_times[reason]  # Use predefined delay time
             st.session_state.show_fix_ui = False
             st.session_state.current_delay = None
 
@@ -157,11 +186,6 @@ else:
                 st.session_state.current_delay = (current_stage_name, next_reason)
                 st.session_state.show_fix_ui = True
                 st.session_state.delay_index += 1
-
-                # Record time for stage so far
-                elapsed = time.time() - st.session_state.stage_start_time
-                st.session_state.time_per_stage[current_stage_name] += elapsed
-                st.session_state.stage_start_time = time.time()
                 st.rerun()
 
     # Reset Button
@@ -195,7 +219,7 @@ else:
             <h4>📊 Simulation Summary</h4>
             <div style='display:flex; justify-content:space-between;'>
                 <div style='flex:1; text-align:center;'>
-                    <h5>⏱️ Total Time Elapsed (s)</h5>
+                    <h5>⏱️ Total Time Elapsed (HRS)</h5>
                     <p style='font-size:24px; font-weight:bold;'>""" + str(total_time) + """</p>
                 </div>
                 <div style='flex:1; text-align:center;'>
@@ -212,6 +236,6 @@ else:
     for i, stage in enumerate(stages):
         with stage_cols[i]:
             st.markdown(f"**{stage}**")
-            st.metric("Time (s)", int(st.session_state.time_per_stage[stage]))
+            st.metric("Time (HRS)", int(st.session_state.time_per_stage[stage]))
             st.metric("Actions", st.session_state.actions_per_stage[stage])
-st.divider()
+    st.divider()
