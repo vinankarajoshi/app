@@ -150,10 +150,19 @@ else:
                 left, right = st.columns([2, 1])  # side-by-side row per delay reason
         
                 with left:
-                    if encountered and fixed:
-                        st.warning(f"⚠️ ISSUE: {reason}\n\n✅ Fixed: {action_taken[reason]}")
-                    elif encountered:
-                        st.error(f"⚠️ ISSUE: {reason}")
+                    if encountered:
+                        action = action_taken.get(reason, "")
+                        issue_html = f"""
+                        <div style='padding:10px; background-color:#fff3cd; border-radius:8px; border:1px solid #ffeeba;'>
+                            <div style='color:red; font-weight:bold;'>⚠️ ISSUE: {reason}</div>
+                        """
+                        if fixed:
+                            issue_html += f"""
+                            <div style='color:green; font-weight:bold;'>✅ Fixed: {action}</div>
+                            """
+                        issue_html += "</div>"
+                        st.markdown(issue_html, unsafe_allow_html=True)
+
         
                 with right:
                     if encountered:
