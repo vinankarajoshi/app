@@ -163,9 +163,11 @@ else:
     
         with col2:
             st.info(f"""
-            ### 📊 Touchpoints & Delay
-            **Touchpoints:** {touch_count[reason]}  
-            **Delay:** {delay_times[reason]} hrs
+            ### ⏱️ Delay  
+            {delay_times[reason]} hrs  
+        
+            ### 👤 Touchpoints  
+            {touch_count[reason]}
             """)
 
            
