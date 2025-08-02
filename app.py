@@ -155,13 +155,20 @@ else:
                         <div style='padding:10px; background-color:#fff3cd; border-radius:8px; border:1px solid #ffeeba;'>
                             <div style='color:red; font-weight:bold;'>⚠️ ISSUE: {reason}</div>
                             <div style='color:green; font-weight:bold;'>✅ FIXED: {action_taken[reason]}</div>
+                        </div>
                         """
                     elif encountered:
+                        issue_html = f"""
                         <div style='padding:10px; background-color:#fff3cd; border-radius:8px; border:1px solid #ffeeba;'>
                             <div style='color:red; font-weight:bold;'>⚠️ ISSUE: {reason}</div>
+                        </div>
                         """
-                    issue_html += "</div>"
-                    st.markdown(issue_html, unsafe_allow_html=True)
+                    else:
+                        issue_html = ""  # optional: fallback if neither condition is met
+                
+                    if issue_html:
+                        st.markdown(issue_html, unsafe_allow_html=True)
+
 
 
         
