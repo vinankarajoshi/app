@@ -106,6 +106,8 @@ else:
         st.session_state.show_fix_ui = False
     if 'stage_milestones' not in st.session_state:
         st.session_state.stage_milestones = {}
+    if 'cumulative_time' not in st.session_state:
+        st.session_state.cumulative_time = 0
 
     st.divider()
 
@@ -147,7 +149,8 @@ else:
             st.session_state.fixes.append(f"Fix applied for: {reason} at {stage}")
             st.session_state.fixed_delays.add((stage, reason))
             st.session_state.actions_per_stage[stage] += touch_count[reason]
-            st.session_state.time_per_stage[stage] += delay_times[reason]  # Use predefined delay time
+            st.session_state.time_per_stage[stage] += delay_times[reason]
+            st.session_state.cumulative_time += delay_times[reason]
             st.session_state.show_fix_ui = False
             st.session_state.current_delay = None
 
@@ -161,7 +164,6 @@ else:
                 st.session_state.show_fix_ui = True
                 st.session_state.delay_index += 1
             else:
-                # No more delays in this stage
                 st.session_state.delay_index = 0
                 st.session_state.stage_milestones[st.session_state.current_stage] = stage_completion_messages[st.session_state.current_stage]
                 st.session_state.current_stage += 1
@@ -173,7 +175,6 @@ else:
                     st.success("✅ Order Successfully Delivered!")
             st.rerun()
 
-    # Proceed Button
     if not st.session_state.order_complete and not st.session_state.show_fix_ui:
         if st.button("🚀 PROCEED"):
             current_stage_name = stages[st.session_state.current_stage]
@@ -188,7 +189,6 @@ else:
                 st.session_state.delay_index += 1
                 st.rerun()
 
-    # Reset Button
     if st.session_state.order_complete:
         if st.button("🔄 Reset Simulation"):
             st.session_state.order_started = False
@@ -207,10 +207,10 @@ else:
             st.session_state.current_delay = None
             st.session_state.show_fix_ui = False
             st.session_state.stage_milestones = {}
+            st.session_state.cumulative_time = 0
             st.rerun()
 
     st.divider()
-# Top Metrics Box
     total_time = int(time.time() - st.session_state.start_time)
     total_actions = sum(st.session_state.actions_per_stage.values())
 
@@ -220,7 +220,7 @@ else:
             <div style='display:flex; justify-content:space-between;'>
                 <div style='flex:1; text-align:center;'>
                     <h5>⏱️ Total Time Elapsed (HRS)</h5>
-                    <p style='font-size:24px; font-weight:bold;'>""" + str(total_time) + """</p>
+                    <p style='font-size:24px; font-weight:bold;'>""" + str(st.session_state.cumulative_time) + """</p>
                 </div>
                 <div style='flex:1; text-align:center;'>
                     <h5>🛠️ Total Actions Taken</h5>
@@ -230,7 +230,6 @@ else:
         </div>
     """, unsafe_allow_html=True)
 
-    # Section-wise summary
     st.markdown("### 📊 Stage-wise Progress")
     stage_cols = st.columns(len(stages))
     for i, stage in enumerate(stages):
