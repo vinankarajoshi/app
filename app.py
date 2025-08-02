@@ -129,7 +129,7 @@ else:
     cols = st.columns(len(stages))
     for i, stage in enumerate(stages):
         with cols[i]:
-            # ✅ First, display the stage box spanning full width
+            # Stage box (spanning full width)
             if i < st.session_state.current_stage:
                 st.success(stage)
                 if i in st.session_state.stage_milestones:
@@ -142,33 +142,33 @@ else:
             else:
                 st.info(stage)
         
-            # ✅ Now create 2 inner columns
-            left, right = st.columns([2, 1])
+            # Paired display of reason and delay info
+            for reason in delay_reasons_per_stage[stage]:
+                encountered = (stage, reason) in st.session_state.all_delays_encountered
+                fixed = (stage, reason) in st.session_state.fixed_delays
         
-            with left:
-                for reason in delay_reasons_per_stage[stage]:
-                    encountered = (stage, reason) in st.session_state.all_delays_encountered
-                    fixed = (stage, reason) in st.session_state.fixed_delays
+                left, right = st.columns([2, 1])  # side-by-side row per delay reason
         
+                with left:
                     if encountered and fixed:
-                        st.warning(f"ISSUE: {reason}\n\n✅ Fixed: {action_taken[reason]}")
+                        st.warning(f"⏱️ Delay: {reason}\n\n✅ Fixed: {action_taken[reason]}")
                     elif encountered:
-                        st.error(f"ISSUE: {reason}")
+                        st.error(f"⏱️ Delay: {reason}")
         
-            with right:
-                for reason in delay_reasons_per_stage[stage]:
-                    if (stage, reason) in st.session_state.all_delays_encountered:
+                with right:
+                    if encountered:
                         delay = delay_times.get(reason, "-")
                         touches = touch_count.get(reason, "-")
                         st.markdown(
                             f"""
-                            <div style='padding:8px; background-color:#f0f2f6; border-radius:8px; margin-bottom:8px; text-align:center;'>
+                            <div style='padding:8px; background-color:#f0f2f6; border-radius:8px; text-align:center;'>
                                 <div><b>Delay:</b> {delay} hrs</div>
                                 <div><b>Touches:</b> {touches}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
                         )
+
 
 
     progress_value = min((st.session_state.current_stage + 1) / len(stages), 0.999)
