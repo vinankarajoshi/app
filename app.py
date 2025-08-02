@@ -154,19 +154,19 @@ else:
     stage, reason = st.session_state.current_delay
     col1, col2 = st.columns(2)
 
-    with col1:
-        st.error(f"""
-        ### ⏱️ Delay encountered: {reason}
-        #### 🛠 TAKE ACTION
-        {delay_action_messages[reason]}
-        """)
-
-    with col2:
-        st.info(f"""
-        ### 📊 Touchpoints & Delay
-        **Touchpoints:** {touch_count[reason]}  
-        **Delay:** {delay_times[reason]} hrs
-        """)
+        with col1:
+            st.error(f"""
+            ### ⏱️ Delay encountered: {reason}
+            #### 🛠 TAKE ACTION
+            {delay_action_messages[reason]}
+            """)
+    
+        with col2:
+            st.info(f"""
+            ### 📊 Touchpoints & Delay
+            **Touchpoints:** {touch_count[reason]}  
+            **Delay:** {delay_times[reason]} hrs
+            """)
 
 
 
