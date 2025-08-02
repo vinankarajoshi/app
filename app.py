@@ -46,6 +46,20 @@ else:
         "POD entry delayed": "ENTER POD MANUALLY (TPO OR SDS)",
         "Large order qty": "SOOC TO BE PERFORMED"
     }
+    action_taken = {
+        "Customer funds unavailable": "Wait complete and funds got reflected",
+        "Stock shortage": "CSA changed the order quantity in SAP",
+        "Incorrect Material code": "VB11 completed",
+        "Vehicle Unavailable": "vehicle called and and vehicle made available after waiting",
+        "Dock waiting": "Dock free and dock in complete for the vehicle",
+        "Underload": "waiting complete, Order qty dropped/ Club load created for the same route",
+        "No entry window": "Waited at entry",
+        "Traffic/Road blocks": "Waiting complete",
+        "CD weekly off": "One day vehicle detention taken",
+        "Unloading Delayed": "Unloading completion delayed",
+        "POD entry delayed": "POD captured from a manual entry in SDS or TPO",
+        "Large order qty": "SOO completed and order split"
+    }
     touch_count = {
         "Customer funds unavailable": 1,
         "Stock shortage": 1,
@@ -129,7 +143,7 @@ else:
                 fixed = (stage, reason) in st.session_state.fixed_delays
 
                 if encountered and fixed:
-                    st.warning(f"⏱️ Delay: {reason}\n\n✅ Fixed: {reason}")
+                    st.warning(f"⏱️ Delay: {reason}\n\n✅ Fixed: {action_taken[reason]}")
                 elif encountered:
                     st.error(f"⏱️ Delay: {reason}")
 
