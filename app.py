@@ -150,7 +150,7 @@ else:
     progress_value = min((st.session_state.current_stage + 1) / len(stages), 0.999)
     st.progress(progress_value)
 
-    if st.session_state.show_fix_ui and st.session_state.current_delay:
+   if st.session_state.show_fix_ui and st.session_state.current_delay:
     stage, reason = st.session_state.current_delay
     col1, col2 = st.columns(2)
 
@@ -167,6 +167,8 @@ else:
         **Touchpoints:** {touch_count[reason]}  
         **Delay:** {delay_times[reason]} hrs
         """)
+
+
 
         if st.button("✅ Fix the issue and take required action"):
             st.session_state.fixes.append(f"Fix applied for: {reason} at {stage}")
