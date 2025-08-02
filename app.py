@@ -129,23 +129,46 @@ else:
     cols = st.columns(len(stages))
     for i, stage in enumerate(stages):
         with cols[i]:
+            # ✅ First, display the stage box spanning full width
             if i < st.session_state.current_stage:
                 st.success(stage)
                 if i in st.session_state.stage_milestones:
-                    st.markdown(f"<div style='text-align:center; font-weight:bold; color:green;'>{st.session_state.stage_milestones[i]}</div>", unsafe_allow_html=True)
+                    st.markdown(
+                        f"<div style='text-align:center; font-weight:bold; color:green;'>{st.session_state.stage_milestones[i]}</div>",
+                        unsafe_allow_html=True
+                    )
             elif i == st.session_state.current_stage:
                 st.warning(stage)
             else:
                 st.info(stage)
+        
+            # ✅ Then split the block into two columns
+            left, right = st.columns([2, 1])
+        
+            with left:
+                for reason in delay_reasons_per_stage[stage]:
+                    encountered = (stage, reason) in st.session_state.all_delays_encountered
+                    fixed = (stage, reason) in st.session_state.fixed_delays
+        
+                    if encountered and fixed:
+                        st.warning(f"⏱️ Delay: {reason}\n\n✅ Fixed: {action_taken[reason]}")
+                    elif encountered:
+                        st.error(f"⏱️ Delay: {reason}")
+        
+            with right:
+                for reason in delay_reasons_per_stage[stage]:
+                    if (stage, reason) in st.session_state.all_delays_encountered:
+                        delay = delay_times.get(reason, "-")
+                        touches = touch_count.get(reason, "-")
+                        st.markdown(
+                            f"""
+                            <div style='padding:8px; background-color:#f0f2f6; border-radius:8px; margin-bottom:8px'>
+                                <b>Delay:</b> {delay} hrs<br>
+                                <b>Touches:</b> {touches}
+                            </div>
+                            """,
+                            unsafe_allow_
 
-            for reason in delay_reasons_per_stage[stage]:
-                encountered = (stage, reason) in st.session_state.all_delays_encountered
-                fixed = (stage, reason) in st.session_state.fixed_delays
-
-                if encountered and fixed:
-                    st.warning(f"⏱️ Delay: {reason}\n\n✅ Fixed: {action_taken[reason]}")
-                elif encountered:
-                    st.error(f"⏱️ Delay: {reason}")
 
 
     progress_value = min((st.session_state.current_stage + 1) / len(stages), 0.999)
