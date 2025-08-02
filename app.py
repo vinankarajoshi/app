@@ -163,6 +163,7 @@ else:
                         issue_html += "</div>"
                         st.markdown(issue_html, unsafe_allow_html=True)
 
+
         
                 with right:
                     if encountered:
