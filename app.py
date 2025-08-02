@@ -27,15 +27,15 @@ else:
     stage_completion_messages = ["OBD Created", "Vehicle Dispatched", "Reached Location", "Delivery Completed"]
 
     delay_reasons_per_stage = {
-        "Order processing": ["Low funds", "Stock shortage", "Incorrect Material code", "Large order qty"],
+        "Order processing": ["Low funds", "Stock shortage", "Diff Material code", "Large order qty"],
         "FO and vehicle placement": ["Vehicle Unavailable", "Dock waiting", "Underload"],
         "In Transit": ["No entry window", "Traffic/Road blocks"],
-        "Reached Customer": ["CD weekly off", "Unloading Delayed", "POD entry delayed"]
+        "Reached Customer": ["CD weekly off", "Unloading Delayed", "POD delayed"]
     }
     delay_action_messages = {
         "Low funds": "NEED TO WAIT UNTIL FUNDS REFLECT/CREATE MANUAL OBD LATER",
         "Stock shortage": "ORDER QTY CHANGE- CSA",
-        "Incorrect Material code": "VB11 TO BE PERFORMED/ MANUALLY CHANGE CODE",
+        "Diff Material code": "VB11 TO BE PERFORMED/ MANUALLY CHANGE CODE",
         "Vehicle Unavailable": "NEED TO WAIT/ CALL UP FOR VEHICLE MANUALLY",
         "Dock waiting": "WAITING TILL DOCK IS FREE",
         "Underload": "WAITING TILL CLUB LOAD/ MANUALLY DROP QTY IF LESS",
@@ -43,13 +43,13 @@ else:
         "Traffic/Road blocks": "DELAY ENCOUNTERED",
         "CD weekly off": "WAIT FOR ANOTHER DAY",
         "Unloading Delayed": "WAIT TILL CD UNLOADS",
-        "POD entry delayed": "ENTER POD MANUALLY (TPO OR SDS)",
+        "POD delayed": "ENTER POD MANUALLY (TPO OR SDS)",
         "Large order qty": "SOOC TO BE PERFORMED"
     }
     action_taken = {
         "Low funds": "Wait complete and funds got reflected",
         "Stock shortage": "CSA changed the order quantity in SAP",
-        "Incorrect Material code": "VB11 completed",
+        "Diff Material code": "VB11 completed",
         "Vehicle Unavailable": "vehicle called and and vehicle made available after waiting",
         "Dock waiting": "Dock free and dock in complete for the vehicle",
         "Underload": "waiting complete, Order qty dropped/ Club load created for the same route",
@@ -57,13 +57,13 @@ else:
         "Traffic/Road blocks": "Waiting complete",
         "CD weekly off": "One day vehicle detention taken",
         "Unloading Delayed": "Unloading completion delayed",
-        "POD entry delayed": "POD captured from a manual entry in SDS or TPO",
+        "POD delayed": "POD captured from a manual entry in SDS or TPO",
         "Large order qty": "SOO completed and order split"
     }
     touch_count = {
         "Low funds": 1,
         "Stock shortage": 1,
-        "Incorrect Material code": 1,
+        "Diff Material code": 1,
         "Vehicle Unavailable": 1,
         "Dock waiting": 0,
         "Underload": 1,
@@ -71,13 +71,13 @@ else:
         "Traffic/Road blocks": 0,
         "CD weekly off": 0,
         "Unloading Delayed": 0,
-        "POD entry delayed": 1,
+        "POD delayed": 1,
         "Large order qty": 1
     }
     delay_times = {
         "Low funds": 3,
         "Stock shortage": 2,
-        "Incorrect Material code": 2,
+        "Diff Material code": 2,
         "Vehicle Unavailable": 4,
         "Dock waiting": 2,
         "Underload": 4,
@@ -85,7 +85,7 @@ else:
         "Traffic/Road blocks": 3,
         "CD weekly off": 24,
         "Unloading Delayed": 4,
-        "POD entry delayed": 4,
+        "POD delayed": 4,
         "Large order qty": 1
     }
 
