@@ -27,13 +27,13 @@ else:
     stage_completion_messages = ["OBD Created", "Vehicle Dispatched", "Reached Location", "Delivery Completed"]
 
     delay_reasons_per_stage = {
-        "Order processing": ["Customer funds unavailable", "Stock shortage", "Incorrect Material code", "Large order qty"],
+        "Order processing": ["Low funds", "Stock shortage", "Incorrect Material code", "Large order qty"],
         "FO and vehicle placement": ["Vehicle Unavailable", "Dock waiting", "Underload"],
         "In Transit": ["No entry window", "Traffic/Road blocks"],
         "Reached Customer": ["CD weekly off", "Unloading Delayed", "POD entry delayed"]
     }
     delay_action_messages = {
-        "Customer funds unavailable": "NEED TO WAIT UNTIL FUNDS REFLECT/CREATE MANUAL OBD LATER",
+        "Low funds": "NEED TO WAIT UNTIL FUNDS REFLECT/CREATE MANUAL OBD LATER",
         "Stock shortage": "ORDER QTY CHANGE- CSA",
         "Incorrect Material code": "VB11 TO BE PERFORMED/ MANUALLY CHANGE CODE",
         "Vehicle Unavailable": "NEED TO WAIT/ CALL UP FOR VEHICLE MANUALLY",
@@ -47,7 +47,7 @@ else:
         "Large order qty": "SOOC TO BE PERFORMED"
     }
     action_taken = {
-        "Customer funds unavailable": "Wait complete and funds got reflected",
+        "Low funds": "Wait complete and funds got reflected",
         "Stock shortage": "CSA changed the order quantity in SAP",
         "Incorrect Material code": "VB11 completed",
         "Vehicle Unavailable": "vehicle called and and vehicle made available after waiting",
@@ -61,7 +61,7 @@ else:
         "Large order qty": "SOO completed and order split"
     }
     touch_count = {
-        "Customer funds unavailable": 1,
+        "Low funds": 1,
         "Stock shortage": 1,
         "Incorrect Material code": 1,
         "Vehicle Unavailable": 1,
@@ -75,7 +75,7 @@ else:
         "Large order qty": 1
     }
     delay_times = {
-        "Customer funds unavailable": 3,
+        "Low funds": 3,
         "Stock shortage": 2,
         "Incorrect Material code": 2,
         "Vehicle Unavailable": 4,
