@@ -15,7 +15,7 @@ if not st.session_state.order_started:
         </div>
     """, unsafe_allow_html=True)
 
-    if st.button("📦 PLACE ORDER"):
+    if st.button("📦 PLACE ORDER", use_container_width=True):
         st.session_state.order_started = True
         st.rerun()
 
@@ -78,7 +78,6 @@ else:
     if 'stage_milestones' not in st.session_state:
         st.session_state.stage_milestones = {}
 
-    
     st.divider()
 
     st.subheader("📦 Current Order Status")
@@ -90,19 +89,18 @@ else:
                 if i in st.session_state.stage_milestones:
                     st.markdown(f"<div style='text-align:center; font-weight:bold; color:green;'>{st.session_state.stage_milestones[i]}</div>", unsafe_allow_html=True)
             elif i == st.session_state.current_stage:
-                st.warning(stage)
+                st.warning(f"📦 {stage}")
             else:
                 st.info(stage)
 
             for reason in delay_reasons_per_stage[stage]:
                 encountered = (stage, reason) in st.session_state.all_delays_encountered
                 fixed = (stage, reason) in st.session_state.fixed_delays
-            
+
                 if encountered and fixed:
                     st.warning(f"⏱️ Delay: {reason}\n\n✅ Fixed: {reason}")
                 elif encountered:
                     st.error(f"⏱️ Delay: {reason}")
-
 
     progress_value = min((st.session_state.current_stage + 1) / len(stages), 0.999)
     st.progress(progress_value)
@@ -132,7 +130,6 @@ else:
                 st.session_state.show_fix_ui = True
                 st.session_state.delay_index += 1
             else:
-                # No more delays in this stage
                 st.session_state.delay_index = 0
                 st.session_state.stage_milestones[st.session_state.current_stage] = stage_completion_messages[st.session_state.current_stage]
                 st.session_state.current_stage += 1
@@ -144,7 +141,6 @@ else:
                     st.success("✅ Order Successfully Delivered!")
             st.rerun()
 
-    # Proceed Button
     if not st.session_state.order_complete and not st.session_state.show_fix_ui:
         if st.button("🚀 PROCEED"):
             current_stage_name = stages[st.session_state.current_stage]
@@ -158,13 +154,11 @@ else:
                 st.session_state.show_fix_ui = True
                 st.session_state.delay_index += 1
 
-                # Record time for stage so far
                 elapsed = time.time() - st.session_state.stage_start_time
                 st.session_state.time_per_stage[current_stage_name] += elapsed
                 st.session_state.stage_start_time = time.time()
                 st.rerun()
 
-    # Reset Button
     if st.session_state.order_complete:
         if st.button("🔄 Reset Simulation"):
             st.session_state.order_started = False
@@ -186,7 +180,7 @@ else:
             st.rerun()
 
     st.divider()
-# Top Metrics Box
+
     total_time = int(time.time() - st.session_state.start_time)
     total_actions = sum(st.session_state.actions_per_stage.values())
 
@@ -206,7 +200,6 @@ else:
         </div>
     """, unsafe_allow_html=True)
 
-    # Section-wise summary
     st.markdown("### 📊 Stage-wise Progress")
     stage_cols = st.columns(len(stages))
     for i, stage in enumerate(stages):
@@ -214,4 +207,5 @@ else:
             st.markdown(f"**{stage}**")
             st.metric("Time (s)", int(st.session_state.time_per_stage[stage]))
             st.metric("Actions", st.session_state.actions_per_stage[stage])
-st.divider()
+
+    st.divider()
